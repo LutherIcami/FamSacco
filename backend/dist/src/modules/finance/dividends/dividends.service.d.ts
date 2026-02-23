@@ -1,9 +1,11 @@
 import { PrismaService } from '../../../prisma.service';
 import { LedgerService } from '../journal/ledger.service';
+import { AuditService } from '../audit/audit.service';
 export declare class DividendsService {
     private prisma;
     private ledgerService;
-    constructor(prisma: PrismaService, ledgerService: LedgerService);
+    private auditService;
+    constructor(prisma: PrismaService, ledgerService: LedgerService, auditService: AuditService);
     getPotentialDividends(): Promise<{
         totalIncome: number;
         totalSavings: number;

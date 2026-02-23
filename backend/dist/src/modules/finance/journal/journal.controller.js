@@ -27,23 +27,29 @@ let JournalController = class JournalController {
         return this.journalService.getGlobalStats();
     }
     getRecentTransactions() {
-        return this.journalService.getRecentTransactions();
+        return this.journalService.getRecentTransactions(20);
     }
     getMyStats(req) {
         return this.journalService.getPersonalStats(req.user.userId);
+    }
+    getCashflow() {
+        return this.journalService.getMonthlyCashflow();
+    }
+    getMemberRoster() {
+        return this.journalService.getMemberSavingsRoster();
     }
 };
 exports.JournalController = JournalController;
 __decorate([
     (0, common_1.Get)('stats'),
-    (0, roles_decorator_1.Roles)('super_admin', 'treasurer'),
+    (0, roles_decorator_1.Roles)('super_admin', 'treasurer', 'secretary'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], JournalController.prototype, "getGlobalStats", null);
 __decorate([
     (0, common_1.Get)('transactions'),
-    (0, roles_decorator_1.Roles)('super_admin', 'treasurer'),
+    (0, roles_decorator_1.Roles)('super_admin', 'treasurer', 'secretary'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
@@ -55,6 +61,20 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], JournalController.prototype, "getMyStats", null);
+__decorate([
+    (0, common_1.Get)('cashflow'),
+    (0, roles_decorator_1.Roles)('super_admin', 'treasurer'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], JournalController.prototype, "getCashflow", null);
+__decorate([
+    (0, common_1.Get)('member-roster'),
+    (0, roles_decorator_1.Roles)('super_admin', 'treasurer', 'secretary'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], JournalController.prototype, "getMemberRoster", null);
 exports.JournalController = JournalController = __decorate([
     (0, common_1.Controller)('finance/ledger'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

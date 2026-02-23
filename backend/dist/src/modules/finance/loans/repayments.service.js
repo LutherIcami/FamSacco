@@ -13,12 +13,15 @@ exports.LoanRepaymentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../prisma.service");
 const ledger_service_1 = require("../journal/ledger.service");
+const audit_service_1 = require("../audit/audit.service");
 let LoanRepaymentsService = class LoanRepaymentsService {
     prisma;
     ledgerService;
-    constructor(prisma, ledgerService) {
+    auditService;
+    constructor(prisma, ledgerService, auditService) {
         this.prisma = prisma;
         this.ledgerService = ledgerService;
+        this.auditService = auditService;
     }
     async repay(loanId, amount, adminId) {
         const loan = await this.prisma.loan.findUnique({
@@ -29,7 +32,7 @@ let LoanRepaymentsService = class LoanRepaymentsService {
             throw new common_1.BadRequestException('Loan not found');
         if (loan.status !== 'DISBURSED')
             throw new common_1.BadRequestException('Can only repay disbursed loans');
-        return this.prisma.$transaction(async (tx) => {
+        const repayment = await this.prisma.$transaction(async (tx) => {
             const previousRepayments = await tx.loanRepayment.aggregate({
                 _sum: { amount: true },
                 where: { loanId }
@@ -46,7 +49,7 @@ let LoanRepaymentsService = class LoanRepaymentsService {
             else {
                 interestPortion = amount;
             }
-            const repayment = await tx.loanRepayment.create({
+            const rep = await tx.loanRepayment.create({
                 data: {
                     loanId,
                     amount: amount,
@@ -67,13 +70,13 @@ let LoanRepaymentsService = class LoanRepaymentsService {
             }
             const result = await this.ledgerService.createJournalEntry({
                 referenceType: 'loan_repayment',
-                referenceId: repayment.id,
+                referenceId: rep.id,
                 description: `Loan repayment from ${loan.user.firstName} ${loan.user.lastName} (P: ${principalPortion}, I: ${interestPortion})`,
                 createdBy: adminId,
                 transactions
             });
             await tx.loanRepayment.update({
-                where: { id: repayment.id },
+                where: { id: rep.id },
                 data: { journalEntryId: result.entry.id }
             });
             if (totalRepaidSoFar + amount >= Number(loan.totalPayable)) {
@@ -82,8 +85,10 @@ let LoanRepaymentsService = class LoanRepaymentsService {
                     data: { status: 'CLOSED' }
                 });
             }
-            return repayment;
+            return rep;
         });
+        await this.auditService.log(adminId, 'LOAN_REPAYMENT', 'loan_repayment', repayment.id);
+        return repayment;
     }
     async findByLoan(loanId) {
         return this.prisma.loanRepayment.findMany({
@@ -96,6 +101,7 @@ exports.LoanRepaymentsService = LoanRepaymentsService;
 exports.LoanRepaymentsService = LoanRepaymentsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        ledger_service_1.LedgerService])
+        ledger_service_1.LedgerService,
+        audit_service_1.AuditService])
 ], LoanRepaymentsService);
 //# sourceMappingURL=repayments.service.js.map

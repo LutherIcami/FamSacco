@@ -6,14 +6,14 @@ export declare class LoanRepaymentsController {
         id: string;
         createdAt: Date;
         journalEntryId: string;
-        amount: import("@prisma/client/runtime/library").Decimal;
         loanId: string;
+        amount: import("@prisma/client/runtime/library").Decimal;
     }>;
     findByLoan(loanId: string): Promise<{
         id: string;
         createdAt: Date;
         journalEntryId: string;
-        amount: import("@prisma/client/runtime/library").Decimal;
         loanId: string;
+        amount: import("@prisma/client/runtime/library").Decimal;
     }[]>;
 }

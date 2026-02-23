@@ -1,12 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { LedgerService } from '../journal/ledger.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class DividendsService {
     constructor(
         private prisma: PrismaService,
-        private ledgerService: LedgerService
+        private ledgerService: LedgerService,
+        private auditService: AuditService
     ) { }
 
     async getPotentialDividends() {
@@ -17,10 +19,8 @@ export class DividendsService {
             where: { accountId: incomeAccount.id }
         });
 
-        // Income balance = Credits - Debits (for a Revenue account)
         const balance = Number(incomeStats._sum.credit || 0) - Number(incomeStats._sum.debit || 0);
 
-        // Fetch all savings accounts
         const savingsAccounts = await this.prisma.account.findMany({
             where: { accountType: 'MEMBER_SAVINGS', NOT: { userId: null } },
             include: { user: true }
@@ -58,15 +58,13 @@ export class DividendsService {
 
         const incomeAccount = await this.ledgerService.getOrCreateSystemAccount('INCOME');
 
-        return this.prisma.$transaction(async (tx) => {
+        const result = await this.prisma.$transaction(async (tx) => {
             const entryDescription = `Dividend distribution for income: KES ${potential.totalIncome.toLocaleString()}`;
 
             const transactions = [
-                // Debit INCOME (reduce income to 0 or reduce it by distributed amount)
                 { accountId: incomeAccount.id, debit: potential.totalIncome, credit: 0 }
             ];
 
-            // Credit each member
             for (const member of potential.memberBreakdown) {
                 if (member.projectedDividend > 0) {
                     transactions.push({
@@ -77,16 +75,18 @@ export class DividendsService {
                 }
             }
 
-            // Create Journal Entry
-            const result = await this.ledgerService.createJournalEntry({
+            return await this.ledgerService.createJournalEntry({
                 referenceType: 'dividend',
                 referenceId: `DIV-${Date.now()}`,
                 description: entryDescription,
                 createdBy: adminId,
                 transactions
             });
-
-            return result;
         });
+
+        // Log the action
+        await this.auditService.log(adminId, 'DIVIDEND_DISTRIBUTED', 'dividend', result.entry.id);
+
+        return result;
     }
 }

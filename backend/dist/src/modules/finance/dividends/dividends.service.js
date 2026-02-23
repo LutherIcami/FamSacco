@@ -13,12 +13,15 @@ exports.DividendsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../prisma.service");
 const ledger_service_1 = require("../journal/ledger.service");
+const audit_service_1 = require("../audit/audit.service");
 let DividendsService = class DividendsService {
     prisma;
     ledgerService;
-    constructor(prisma, ledgerService) {
+    auditService;
+    constructor(prisma, ledgerService, auditService) {
         this.prisma = prisma;
         this.ledgerService = ledgerService;
+        this.auditService = auditService;
     }
     async getPotentialDividends() {
         const incomeAccount = await this.ledgerService.getOrCreateSystemAccount('INCOME');
@@ -59,7 +62,7 @@ let DividendsService = class DividendsService {
         if (potential.totalIncome <= 0)
             throw new common_1.BadRequestException('No income available to distribute');
         const incomeAccount = await this.ledgerService.getOrCreateSystemAccount('INCOME');
-        return this.prisma.$transaction(async (tx) => {
+        const result = await this.prisma.$transaction(async (tx) => {
             const entryDescription = `Dividend distribution for income: KES ${potential.totalIncome.toLocaleString()}`;
             const transactions = [
                 { accountId: incomeAccount.id, debit: potential.totalIncome, credit: 0 }
@@ -73,21 +76,23 @@ let DividendsService = class DividendsService {
                     });
                 }
             }
-            const result = await this.ledgerService.createJournalEntry({
+            return await this.ledgerService.createJournalEntry({
                 referenceType: 'dividend',
                 referenceId: `DIV-${Date.now()}`,
                 description: entryDescription,
                 createdBy: adminId,
                 transactions
             });
-            return result;
         });
+        await this.auditService.log(adminId, 'DIVIDEND_DISTRIBUTED', 'dividend', result.entry.id);
+        return result;
     }
 };
 exports.DividendsService = DividendsService;
 exports.DividendsService = DividendsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        ledger_service_1.LedgerService])
+        ledger_service_1.LedgerService,
+        audit_service_1.AuditService])
 ], DividendsService);
 //# sourceMappingURL=dividends.service.js.map

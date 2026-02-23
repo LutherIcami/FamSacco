@@ -2,11 +2,14 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { LedgerService } from '../journal/ledger.service';
 
+import { AuditService } from '../audit/audit.service';
+
 @Injectable()
 export class LoanRepaymentsService {
     constructor(
         private prisma: PrismaService,
-        private ledgerService: LedgerService
+        private ledgerService: LedgerService,
+        private auditService: AuditService
     ) { }
 
     async repay(loanId: string, amount: number, adminId: string) {
@@ -18,7 +21,7 @@ export class LoanRepaymentsService {
         if (!loan) throw new BadRequestException('Loan not found');
         if (loan.status !== 'DISBURSED') throw new BadRequestException('Can only repay disbursed loans');
 
-        return this.prisma.$transaction(async (tx) => {
+        const repayment = await this.prisma.$transaction(async (tx) => {
             // Get total amount previously repaid for this loan
             const previousRepayments = await tx.loanRepayment.aggregate({
                 _sum: { amount: true },
@@ -39,7 +42,7 @@ export class LoanRepaymentsService {
             }
 
             // 1. Create Repayment record
-            const repayment = await tx.loanRepayment.create({
+            const rep = await tx.loanRepayment.create({
                 data: {
                     loanId,
                     amount: amount,
@@ -66,7 +69,7 @@ export class LoanRepaymentsService {
 
             const result = await this.ledgerService.createJournalEntry({
                 referenceType: 'loan_repayment',
-                referenceId: repayment.id,
+                referenceId: rep.id,
                 description: `Loan repayment from ${loan.user.firstName} ${loan.user.lastName} (P: ${principalPortion}, I: ${interestPortion})`,
                 createdBy: adminId,
                 transactions
@@ -74,7 +77,7 @@ export class LoanRepaymentsService {
 
             // Update repayment with real journal entry id
             await tx.loanRepayment.update({
-                where: { id: repayment.id },
+                where: { id: rep.id },
                 data: { journalEntryId: result.entry.id }
             });
 
@@ -86,8 +89,13 @@ export class LoanRepaymentsService {
                 });
             }
 
-            return repayment;
+            return rep;
         });
+
+        // Log the action
+        await this.auditService.log(adminId, 'LOAN_REPAYMENT', 'loan_repayment', repayment.id);
+
+        return repayment;
     }
 
     async findByLoan(loanId: string) {

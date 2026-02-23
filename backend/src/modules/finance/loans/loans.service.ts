@@ -2,11 +2,14 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import { LedgerService } from '../journal/ledger.service';
 
+import { AuditService } from '../audit/audit.service';
+
 @Injectable()
 export class LoansService {
     constructor(
         private prisma: PrismaService,
-        private ledgerService: LedgerService
+        private ledgerService: LedgerService,
+        private auditService: AuditService
     ) { }
 
     async findAllPending() {
@@ -50,20 +53,25 @@ export class LoansService {
             });
         }
 
-        return this.prisma.loan.update({
+        const updatedLoan = await this.prisma.loan.update({
             where: { id },
             data: {
                 status,
                 approvedBy: adminId
             },
         });
+
+        // Log the action
+        await this.auditService.log(adminId, `LOAN_${status}`, 'loan', id);
+
+        return updatedLoan;
     }
 
     async applyForLoan(userId: string, data: { principalAmount: number; interestRate: number; totalPayable: number }) {
         const threshold = 100000;
         const status = data.principalAmount > threshold ? 'COMMITTEE_REVIEW' : 'REQUESTED';
 
-        return this.prisma.loan.create({
+        const loan = await this.prisma.loan.create({
             data: {
                 userId,
                 principalAmount: data.principalAmount,
@@ -72,5 +80,10 @@ export class LoansService {
                 status: status,
             },
         });
+
+        // Log the action (userId is the member applying)
+        await this.auditService.log(userId, 'LOAN_APPLIED', 'loan', loan.id);
+
+        return loan;
     }
 }
