@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 👥 USERS & AUTH DOMAIN
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String      @id @default(uuid())
+  firstName     String      @map("first_name")
+  lastName      String      @map("last_name")
+  email         String      @unique
+  phone         String?
+  passwordHash  String      @map("password_hash")
+  status        UserStatus  @default(ACTIVE)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  roles         UserRole[]
+  accounts      Account[]
+  contributions Contribution[]
+  loans         Loan[]
+  posts         Post[]
+  comments      Comment[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Role {
+  id    String     @id @default(uuid())
+  name  String     @unique // super_admin, treasurer, committee, member
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  roleId String @map("role_id")
+  user   User   @relation(fields: [userId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@map("user_roles")
+}
+
+// 🏦 FINANCE DOMAIN
+enum AccountType {
+  MEMBER_SAVINGS
+  SACCO_POOL
+  LOAN_RECEIVABLE
+  INCOME
+  EXPENSE
+}
+
+model Account {
+  id          String      @id @default(uuid())
+  userId      String?     @map("user_id") // null for system accounts
+  accountType AccountType @map("account_type")
+  currency    String      @default("KES")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  user         User?         @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id            String   @id @default(uuid())
+  referenceType String   @map("reference_type") // contribution, loan, repayment, dividend
+  referenceId   String   @map("reference_id")
+  description   String?
+  createdBy     String   @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+
+  @@map("journal_entries")
+}
+
+model Transaction {
+  id             String   @id @default(uuid())
+  journalEntryId String   @map("journal_entry_id")
+  accountId      String   @map("account_id")
+  debit          Decimal  @default(0) @db.Decimal(20, 2)
+  credit         Decimal  @default(0) @db.Decimal(20, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id])
+  account      Account      @relation(fields: [accountId], references: [id])
+
+  @@map("transactions")
+}
+
+model Contribution {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  amount         Decimal  @db.Decimal(20, 2)
+  month          String
+  status         String   @default("PENDING") // PENDING, CONFIRMED
+  journalEntryId String?  @map("journal_entry_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("contributions")
+}
+
+model Loan {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  principalAmount Decimal  @map("principal_amount") @db.Decimal(20, 2)
+  interestRate    Decimal  @map("interest_rate") @db.Decimal(5, 2)
+  totalPayable    Decimal  @map("total_payable") @db.Decimal(20, 2)
+  status          String   @default("REQUESTED") // REQUESTED, APPROVED, DISBURSED, CLOSED
+  approvedBy      String?  @map("approved_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user       User            @relation(fields: [userId], references: [id])
+  repayments LoanRepayment[]
+
+  @@map("loans")
+}
+
+model LoanRepayment {
+  id             String   @id @default(uuid())
+  loanId         String   @map("loan_id")
+  amount         Decimal  @db.Decimal(20, 2)
+  journalEntryId String   @map("journal_entry_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  loan Loan @relation(fields: [loanId], references: [id])
+
+  @@map("loan_repayments")
+}
+
+// 📰 SOCIAL DOMAIN
+model Post {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id])
+  comments Comment[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  type        String
+  referenceId String?  @map("reference_id")
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+// 🧾 AUDIT DOMAIN
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
