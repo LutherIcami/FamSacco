@@ -12,6 +12,7 @@ datasource db {
 
 // 👥 USERS & AUTH DOMAIN
 enum UserStatus {
+  PENDING
   ACTIVE
   SUSPENDED
 }
@@ -23,7 +24,7 @@ model User {
   email         String      @unique
   phone         String?
   passwordHash  String      @map("password_hash")
-  status        UserStatus  @default(ACTIVE)
+  status        UserStatus  @default(PENDING)
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
@@ -35,6 +36,7 @@ model User {
   comments      Comment[]
   notifications Notification[]
   auditLogs     AuditLog[]
+  loanVotes     LoanVote[]
 
   @@map("users")
 }
@@ -126,14 +128,29 @@ model Loan {
   principalAmount Decimal  @map("principal_amount") @db.Decimal(20, 2)
   interestRate    Decimal  @map("interest_rate") @db.Decimal(5, 2)
   totalPayable    Decimal  @map("total_payable") @db.Decimal(20, 2)
-  status          String   @default("REQUESTED") // REQUESTED, APPROVED, DISBURSED, CLOSED
+  status          String   @default("REQUESTED") // REQUESTED, COMMITTEE_REVIEW, APPROVED, DISBURSED, CLOSED
   approvedBy      String?  @map("approved_by")
   createdAt       DateTime @default(now()) @map("created_at")
 
   user       User            @relation(fields: [userId], references: [id])
   repayments LoanRepayment[]
+  votes      LoanVote[]
 
   @@map("loans")
+}
+
+model LoanVote {
+  id        String   @id @default(uuid())
+  loanId    String   @map("loan_id")
+  userId    String   @map("user_id")
+  vote      String   // APPROVE, REJECT
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  loan Loan @relation(fields: [loanId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("loan_votes")
 }
 
 model LoanRepayment {
