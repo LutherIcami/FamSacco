@@ -17,6 +17,35 @@ export default function SecretaryDashboard() {
     const [roster, setRoster] = useState<Member[]>([]);
     const [transactions, setTransactions] = useState<Tx[]>([]);
     const [search, setSearch] = useState('');
+    const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+    const [broadcastContent, setBroadcastContent] = useState('');
+    const [isBroadcasting, setIsBroadcasting] = useState(false);
+
+    const handleBroadcast = async () => {
+        if (!broadcastContent.trim()) return;
+        setIsBroadcasting(true);
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/social/broadcast`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content: broadcastContent })
+            });
+
+            if (res.ok) {
+                setBroadcastContent('');
+                setShowBroadcastModal(false);
+                fetchAll(token!); // Refresh roster/activity if needed
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsBroadcasting(false);
+        }
+    };
 
     const fetchAll = useCallback(async (token: string) => {
         const headers = { Authorization: `Bearer ${token}` };
@@ -72,10 +101,50 @@ export default function SecretaryDashboard() {
 
             <main className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
                 {/* Header */}
-                <section>
-                    <h1 className="text-4xl font-black tracking-tight">Secretariat Portal 📝</h1>
-                    <p className="text-foreground/40 font-medium mt-1">Membership records, Sacco status, and activity feed — all in one view.</p>
+                <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <h1 className="text-4xl font-black tracking-tight">Secretariat Portal 📝</h1>
+                        <p className="text-foreground/40 font-medium mt-1">Membership records, Sacco status, and activity feed — all in one view.</p>
+                    </div>
+                    <button
+                        onClick={() => setShowBroadcastModal(true)}
+                        className="px-6 py-3 rounded-xl premium-gradient text-white font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2"
+                    >
+                        <span>📢</span> Broadcast Announcement
+                    </button>
                 </section>
+
+                {/* Broadcast Modal */}
+                {showBroadcastModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-md">
+                        <div className="bg-card w-full max-w-lg rounded-[32px] border border-white/10 p-10 shadow-3xl glass-morphism animate-in zoom-in-95 duration-300">
+                            <h2 className="text-2xl font-black tracking-tight mb-2">New Global Broadcast</h2>
+                            <p className="text-foreground/40 text-sm mb-6">This message will be sent to every active member in the Sacco and appeared on all dashboards.</p>
+                            <textarea
+                                autoFocus
+                                placeholder="Type your announcement here..."
+                                value={broadcastContent}
+                                onChange={(e) => setBroadcastContent(e.target.value)}
+                                className="w-full h-40 bg-foreground/5 border border-foreground/10 rounded-2xl p-6 outline-none focus:border-primary/50 transition-all font-medium resize-none mb-6"
+                            />
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setShowBroadcastModal(false)}
+                                    className="flex-1 py-4 rounded-2xl bg-foreground/5 font-black text-sm uppercase tracking-widest hover:bg-foreground/10 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleBroadcast}
+                                    disabled={!broadcastContent.trim() || isBroadcasting}
+                                    className="flex-[2] py-4 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                >
+                                    {isBroadcasting ? 'Broadcasting...' : '📢 Send to Everyone'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Membership Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
@@ -116,6 +185,7 @@ export default function SecretaryDashboard() {
                                         <th className="px-6 py-3 text-left">Status</th>
                                         <th className="px-6 py-3 text-right">Savings</th>
                                         <th className="px-6 py-3 text-left">Loan</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-foreground/5">
@@ -129,8 +199,8 @@ export default function SecretaryDashboard() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${m.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                        m.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                            'bg-red-500/10 text-red-400 border-red-500/20'
+                                                    m.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                        'bg-red-500/10 text-red-400 border-red-500/20'
                                                     }`}>{m.status}</span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
@@ -145,6 +215,30 @@ export default function SecretaryDashboard() {
                                                         </div>
                                                     </div>
                                                 ) : <span className="text-[9px] text-foreground/20">—</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    onClick={async () => {
+                                                        const token = localStorage.getItem('access_token');
+                                                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/reports/statement?userId=${m.userId}`, {
+                                                            headers: { 'Authorization': `Bearer ${token}` }
+                                                        });
+                                                        if (res.ok) {
+                                                            const blob = await res.blob();
+                                                            const url = window.URL.createObjectURL(blob);
+                                                            const a = document.createElement('a');
+                                                            a.href = url;
+                                                            a.download = `statement_${m.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                                                            document.body.appendChild(a);
+                                                            a.click();
+                                                            a.remove();
+                                                        }
+                                                    }}
+                                                    className="p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xs font-black transition-all"
+                                                    title="Download Statement"
+                                                >
+                                                    📄
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}

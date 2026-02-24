@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, AccountType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -72,10 +72,10 @@ async function assignRole(userId: string, roleName: string) {
 }
 
 async function ensureMemberSavingsAccount(userId: string) {
-    const existing = await prisma.account.findFirst({ where: { userId, accountType: 'MEMBER_SAVINGS' } });
+    const existing = await prisma.account.findFirst({ where: { userId, accountType: AccountType.MEMBER_SAVINGS } });
     if (!existing) {
         await prisma.account.create({
-            data: { userId, accountType: 'MEMBER_SAVINGS' }
+            data: { userId, accountType: AccountType.MEMBER_SAVINGS }
         });
     }
 }
@@ -95,7 +95,7 @@ async function main() {
     console.log('✅ Roles created:', allRoles.join(', '));
 
     // 2. Ensure system ledger accounts exist
-    const systemAccounts = ['SACCO_POOL', 'LOAN_RECEIVABLE', 'INCOME'];
+    const systemAccounts = [AccountType.SACCO_POOL, AccountType.LOAN_RECEIVABLE, AccountType.INCOME];
     for (const accountType of systemAccounts) {
         const existing = await prisma.account.findFirst({ where: { accountType, userId: null } });
         if (!existing) {

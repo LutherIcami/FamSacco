@@ -158,14 +158,37 @@ export default function LedgerPage() {
                         <p className="text-foreground/40 font-medium font-inter">Verified double-entry accounting records.</p>
                     </div>
 
-                    {isAdmin && (
+                    <div className="flex gap-4">
+                        {isAdmin && (
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="px-6 py-3 rounded-xl accent-gradient text-white font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                            >
+                                + Record Member Deposit
+                            </button>
+                        )}
                         <button
-                            onClick={() => setShowModal(true)}
-                            className="px-6 py-3 rounded-xl accent-gradient text-white font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                            onClick={async () => {
+                                const token = localStorage.getItem('access_token');
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/reports/statement`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (res.ok) {
+                                    const blob = await res.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `statement_${new Date().toISOString().split('T')[0]}.pdf`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                }
+                            }}
+                            className="px-6 py-3 rounded-xl bg-foreground/5 border border-foreground/10 font-black text-sm hover:bg-foreground/10 transition-all flex items-center gap-2"
                         >
-                            + Record Member Deposit
+                            <span>📥</span> Download PDF Statement
                         </button>
-                    )}
+                    </div>
                 </section>
 
                 {/* Deposit Modal */}

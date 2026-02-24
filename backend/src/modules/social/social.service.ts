@@ -46,6 +46,41 @@ export class SocialService {
         });
     }
 
+    async broadcastPost(userId: string, dto: CreatePostDto) {
+        // Create the post
+        const post = await this.prisma.post.create({
+            data: {
+                userId,
+                content: `🚨 BROADCAST: ${dto.content}`,
+                imageUrl: dto.imageUrl,
+            },
+            include: {
+                user: {
+                    select: { id: true, firstName: true, lastName: true }
+                }
+            }
+        });
+
+        // Notify all active users
+        const users = await this.prisma.user.findMany({
+            where: { status: 'ACTIVE' },
+            select: { id: true }
+        });
+
+        if (users.length > 0) {
+            await this.prisma.notification.createMany({
+                data: users.map(u => ({
+                    userId: u.id,
+                    type: 'SYSTEM_BROADCAST',
+                    referenceId: post.id,
+                    isRead: false
+                }))
+            });
+        }
+
+        return post;
+    }
+
     async deletePost(userId: string, postId: string) {
         const post = await this.prisma.post.findUnique({ where: { id: postId } });
         if (!post) throw new NotFoundException('Post not found');

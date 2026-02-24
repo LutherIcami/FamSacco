@@ -15,6 +15,8 @@ import { GovernanceService } from './governance/governance.service';
 import { GovernanceController } from './governance/governance.controller';
 import { AuditService } from './audit/audit.service';
 import { AuditController } from './audit/audit.controller';
+import { ReportsService } from './reports/reports.service';
+import { ReportsController } from './reports/reports.controller';
 
 @Module({
     providers: [
@@ -25,7 +27,8 @@ import { AuditController } from './audit/audit.controller';
         LoanRepaymentsService,
         DividendsService,
         GovernanceService,
-        AuditService
+        AuditService,
+        ReportsService
     ],
     controllers: [
         LoansController,
@@ -34,7 +37,8 @@ import { AuditController } from './audit/audit.controller';
         LoanRepaymentsController,
         DividendsController,
         GovernanceController,
-        AuditController
+        AuditController,
+        ReportsController
     ],
     exports: [LedgerService, DividendsService, AuditService]
 })

@@ -218,11 +218,12 @@ export default function TreasurerDashboard() {
                                     <th className="px-8 py-4 text-right">Savings</th>
                                     <th className="px-8 py-4 text-left">Loan Status</th>
                                     <th className="px-8 py-4 text-left">Repayment Progress</th>
+                                    <th className="px-8 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-foreground/5">
                                 {roster.length === 0 ? (
-                                    <tr><td colSpan={4} className="py-16 text-center text-foreground/20 italic font-bold text-sm">No member accounts found</td></tr>
+                                    <tr><td colSpan={5} className="py-16 text-center text-foreground/20 italic font-bold text-sm">No member accounts found</td></tr>
                                 ) : roster.map(m => (
                                     <tr key={m.userId} className="hover:bg-foreground/3 transition-colors">
                                         <td className="px-8 py-4">
@@ -254,6 +255,30 @@ export default function TreasurerDashboard() {
                                                     </div>
                                                 </div>
                                             ) : <span className="text-[9px] text-foreground/20 italic">—</span>}
+                                        </td>
+                                        <td className="px-8 py-4 text-right">
+                                            <button
+                                                onClick={async () => {
+                                                    const token = localStorage.getItem('access_token');
+                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/reports/statement?userId=${m.userId}`, {
+                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                    });
+                                                    if (res.ok) {
+                                                        const blob = await res.blob();
+                                                        const url = window.URL.createObjectURL(blob);
+                                                        const a = document.createElement('a');
+                                                        a.href = url;
+                                                        a.download = `statement_${m.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                                                        document.body.appendChild(a);
+                                                        a.click();
+                                                        a.remove();
+                                                    }
+                                                }}
+                                                className="p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xs font-black transition-all"
+                                                title="Download Statement"
+                                            >
+                                                📄
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

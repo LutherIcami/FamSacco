@@ -9,6 +9,7 @@ export default function Dashboard() {
     const [user, setUser] = useState<any>(null);
     const [mounted, setMounted] = useState(false);
     const [personalStats, setPersonalStats] = useState<any>(null);
+    const [posts, setPosts] = useState<any[]>([]);
 
     useEffect(() => {
         setMounted(true);
@@ -39,17 +40,24 @@ export default function Dashboard() {
         }
 
         // Regular members see personal stats
-        fetchPersonalStats(token);
+        fetchData(token);
     }, [router]);
 
-    const fetchPersonalStats = async (token: string) => {
+    const fetchData = async (token: string) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/ledger/my-stats`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) setPersonalStats(await res.json());
+            const [statsRes, postsRes] = await Promise.all([
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/ledger/my-stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/social/posts`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            if (statsRes.ok) setPersonalStats(await statsRes.json());
+            if (postsRes.ok) setPosts(await postsRes.json());
         } catch (err) {
-            console.error('Failed to fetch personal stats', err);
+            console.error('Failed to fetch dashboard data', err);
         }
     };
 
@@ -142,6 +150,27 @@ export default function Dashboard() {
                                 <span className="text-xs font-bold text-white/80">Ledger Verified</span>
                             </div>
                         )}
+                        <button
+                            onClick={async () => {
+                                const token = localStorage.getItem('access_token');
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/reports/statement`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (res.ok) {
+                                    const blob = await res.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `my_statement_${new Date().toISOString().split('T')[0]}.pdf`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                }
+                            }}
+                            className="w-full py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            <span>📥</span> Get My Statement
+                        </button>
                     </div>
 
                     {/* Active Loan Card */}
@@ -196,14 +225,28 @@ export default function Dashboard() {
                             <h3 className="text-xl font-black tracking-tight">Family Updates</h3>
                             <Link href="/social" className="text-xs font-bold text-primary hover:underline uppercase tracking-tight">Post Update</Link>
                         </div>
-                        <div className="space-y-4">
-                            <div className="p-4 rounded-2xl bg-foreground/5 border border-foreground/5 flex gap-4">
-                                <div className="w-10 h-10 rounded-xl accent-gradient flex-shrink-0 flex items-center justify-center text-lg">💡</div>
-                                <div className="space-y-1">
-                                    <p className="text-sm font-bold">Welcome to FamSacco!</p>
-                                    <p className="text-xs text-foreground/60 leading-relaxed">Your journey to collective family wealth starts here. Explore the tools above.</p>
+                        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                            {posts.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                                    <div className="text-4xl opacity-20">💡</div>
+                                    <p className="text-sm text-foreground/40 font-medium">Welcome to FamSacco! No family updates yet.</p>
                                 </div>
-                            </div>
+                            ) : posts.slice(0, 5).map(post => (
+                                <div key={post.id} className={`p-4 rounded-2xl border transition-all ${post.content.startsWith('🚨 BROADCAST') ? 'bg-primary/5 border-primary/20 shadow-lg shadow-primary/5' : 'bg-foreground/5 border-foreground/5'}`}>
+                                    <div className="flex gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-lg ${post.content.startsWith('🚨 BROADCAST') ? 'premium-gradient' : 'bg-foreground/10'}`}>
+                                            {post.content.startsWith('🚨 BROADCAST') ? '📢' : '💭'}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between items-center gap-2">
+                                                <p className="text-xs font-black uppercase tracking-tight text-foreground/60">{post.user.firstName} {post.user.lastName}</p>
+                                                <span className="text-[10px] font-medium text-foreground/30">{new Date(post.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            <p className="text-sm font-bold leading-relaxed">{post.content}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>

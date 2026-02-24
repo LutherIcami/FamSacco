@@ -8,9 +8,19 @@ import { SocialModule } from './modules/social/social.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, SocialModule, GovernanceModule, AuditModule, FinanceModule],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    UsersModule,
+    SocialModule,
+    GovernanceModule,
+    AuditModule,
+    FinanceModule,
+    ChatModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
