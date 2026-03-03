@@ -162,9 +162,9 @@ export default function MemberApproval() {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex justify-center">
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${member.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                                                        member.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                                            'bg-red-500/10 text-red-500 border-red-500/20'
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${member.status === 'PENDING' ? 'bg-accent/10 text-accent border-accent/20' :
+                                                    member.status === 'ACTIVE' ? 'bg-secondary/10 text-secondary border-secondary/20' :
+                                                        'bg-foreground/10 text-foreground/50 border-foreground/10'
                                                     }`}>
                                                     {member.status}
                                                 </span>
@@ -175,7 +175,7 @@ export default function MemberApproval() {
                                                 {member.status === 'PENDING' && (
                                                     <button
                                                         onClick={() => updateMemberStatus(member.id, 'ACTIVE')}
-                                                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+                                                        className="gold-gradient text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-lg shadow-secondary/20"
                                                     >
                                                         Approve
                                                     </button>
@@ -191,7 +191,7 @@ export default function MemberApproval() {
                                                 {member.status === 'SUSPENDED' && (
                                                     <button
                                                         onClick={() => updateMemberStatus(member.id, 'ACTIVE')}
-                                                        className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border border-emerald-500/20"
+                                                        className="bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border border-secondary/20"
                                                     >
                                                         Reactivate
                                                     </button>

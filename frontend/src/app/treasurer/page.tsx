@@ -76,127 +76,119 @@ export default function TreasurerDashboard() {
     if (!user) return null;
 
     return (
-        <div className="min-h-screen bg-background font-inter">
-            {/* Nav */}
-            <nav className="border-b border-border/50 px-8 py-4 flex justify-between items-center bg-card/40 backdrop-blur-xl sticky top-0 z-50">
-                <div className="flex items-center gap-8">
-                    <Link href="/dashboard" className="text-2xl font-black tracking-tight">Fam<span className="text-primary italic">Sacco</span></Link>
-                    <div className="hidden md:flex gap-6 text-sm font-semibold text-foreground/60">
-                        <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
-                        <Link href="/treasurer" className="text-primary">Treasury</Link>
-                        <Link href="/finance" className="hover:text-primary transition-colors">Ledger</Link>
-                        <Link href="/admin/members" className="hover:text-primary transition-colors">Members</Link>
+        <div className="min-h-screen bg-background flex flex-col font-inter">
+            {/* Floating Navigation */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-6xl px-6">
+                <nav className="glass-morphism rounded-full px-8 py-4 flex justify-between items-center bg-white/60 shadow-2xl border border-primary/5">
+                    <div className="flex items-center gap-12">
+                        <Link href="/dashboard" className="text-2xl font-black tracking-tight hover:scale-105 transition-transform">
+                            Fam<span className="text-primary italic">Sacco</span>
+                        </Link>
+                        <div className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/40">
+                            <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
+                            <Link href="/treasurer" className="text-primary">Treasury</Link>
+                            <Link href="/finance" className="hover:text-primary transition-colors">Ledger</Link>
+                            <Link href="/admin/members" className="hover:text-primary transition-colors">Members</Link>
+                        </div>
                     </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full">Treasurer</span>
-                    <span className="text-sm font-bold hidden sm:block">{user.firstName} {user.lastName}</span>
-                    <button onClick={handleLogout} className="w-9 h-9 rounded-xl bg-foreground/5 border border-foreground/10 flex items-center justify-center text-sm hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all" title="Log out">↪</button>
-                </div>
-            </nav>
+                </nav>
+            </div>
 
-            <main className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
+            <div className="h-24"></div>
+
+            <main className="p-8 max-w-7xl mx-auto w-full space-y-12 animate-reveal">
                 {/* Header */}
-                <section>
-                    <h1 className="text-4xl font-black tracking-tight">Treasury Command Centre 🏦</h1>
-                    <p className="text-foreground/40 font-medium mt-1">Real-time financial health, disbursements, and dividend management.</p>
+                <section className="flex flex-col md:flex-row justify-between items-end gap-6">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Treasury</h1>
+                        <p className="text-lg text-foreground/40 font-medium italic">Maintaining the collective family liquidity.</p>
+                    </div>
+                    <div className="px-6 py-3 rounded-full bg-secondary/10 border border-secondary/10 flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary anim-pulse">● System Secured</span>
+                    </div>
                 </section>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
-                        { label: 'Liquidity Pool', value: fmt(stats?.liquidity ?? 0), icon: '💧', color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
-                        { label: 'Portfolio at Risk', value: fmt(stats?.portfolioAtRisk ?? 0), icon: '📊', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-                        { label: 'Interest Income', value: fmt(stats?.totalIncome ?? 0), icon: '📈', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-                        { label: 'Awaiting Approval', value: String((stats?.awaitingDisbursement ?? 0) + (stats?.awaitingGovernance ?? 0)), icon: '⏳', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                    ].map(card => (
-                        <div key={card.label} className={`glass-morphism rounded-3xl p-6 border ${card.bg} space-y-3`}>
-                            <div className="flex justify-between items-start">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{card.label}</span>
-                                <span className="text-2xl">{card.icon}</span>
+                        { label: 'Liquidity Pool', value: fmt(stats?.liquidity ?? 0), icon: '💧', color: 'text-primary' },
+                        { label: 'Portfolio at Risk', value: fmt(stats?.portfolioAtRisk ?? 0), icon: '📊', color: 'text-secondary' },
+                        { label: 'Total Income', value: fmt(stats?.totalIncome ?? 0), icon: '📈', color: 'text-secondary' },
+                        { label: 'Pending Review', value: String((stats?.awaitingDisbursement ?? 0) + (stats?.awaitingGovernance ?? 0)), icon: '⏳', color: 'text-foreground/40' },
+                    ].map((card, i) => (
+                        <div key={card.label} className="bg-white rounded-[2.5rem] p-8 border border-primary/5 shadow-xl hover-lift animate-reveal" style={{ animationDelay: `${i * 100}ms` }}>
+                            <div className="flex justify-between items-start mb-4">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/20">{card.label}</span>
+                                <span className="text-2xl grayscale scale-75 opacity-20">{card.icon}</span>
                             </div>
-                            <div className={`text-2xl font-black ${card.color}`}>{card.value}</div>
+                            <div className={`text-2xl font-black tracking-tighter ${card.color}`}>{card.value}</div>
                         </div>
                     ))}
                 </div>
 
-                {/* Two-column: Chart + Actions */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Bento Grid: Chart + Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Cashflow Chart */}
-                    <div className="lg:col-span-3 glass-morphism rounded-3xl p-8 border border-border/50 space-y-6">
+                    <div className="lg:col-span-8 bg-white rounded-[3.5rem] p-10 border border-primary/5 shadow-2xl space-y-8 hover-lift">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-black">6-Month Cashflow</h2>
-                            <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest">
-                                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-400 inline-block"></span>Savings In</span>
-                                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-purple-400 inline-block"></span>Loans Out</span>
-                                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>Interest</span>
+                            <h2 className="text-2xl font-black tracking-tighter">Periodic Cashflow</h2>
+                            <div className="flex gap-6 text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40">
+                                <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-primary/20"></span>Savings</span>
+                                <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-secondary/20"></span>Disbursements</span>
                             </div>
                         </div>
-                        <div className="flex items-end gap-3 h-44">
+                        <div className="flex items-end gap-4 h-64 px-4">
                             {cashflow.length === 0 ? (
-                                <div className="flex-1 flex items-center justify-center text-foreground/20 font-bold italic text-sm">No cashflow data yet</div>
+                                <div className="flex-1 flex items-center justify-center text-foreground/10 font-black italic text-4xl uppercase tracking-tighter">DATA SYNCING...</div>
                             ) : cashflow.map((m) => (
-                                <div key={m.label} className="flex-1 flex flex-col items-center gap-1.5 group">
-                                    <div className="w-full flex items-end gap-0.5" style={{ height: '140px' }}>
+                                <div key={m.label} className="flex-1 flex flex-col items-center gap-4 group">
+                                    <div className="w-full flex items-end gap-1" style={{ height: '180px' }}>
                                         {[
-                                            { v: m.savings, color: 'bg-sky-400' },
-                                            { v: m.loans, color: 'bg-purple-400' },
-                                            { v: m.income, color: 'bg-emerald-400' },
+                                            { v: m.savings, color: 'bg-primary/20 group-hover:bg-primary transition-colors' },
+                                            { v: m.loans, color: 'bg-secondary/20 group-hover:bg-secondary transition-colors' },
                                         ].map((bar, i) => (
-                                            <div key={i} title={fmt(bar.v)} className={`flex-1 ${bar.color} rounded-t-sm opacity-80 group-hover:opacity-100 transition-all`} style={{ height: `${(bar.v / maxCashflow) * 100}%`, minHeight: bar.v > 0 ? 4 : 0 }}></div>
+                                            <div key={i} title={fmt(bar.v)} className={`flex-1 ${bar.color} rounded-full`} style={{ height: `${(bar.v / maxCashflow) * 100}%`, minHeight: bar.v > 0 ? 8 : 0 }}></div>
                                         ))}
                                     </div>
-                                    <span className="text-[9px] font-black text-foreground/30 uppercase tracking-wider">{m.label}</span>
+                                    <span className="text-[10px] font-black text-foreground/20 uppercase tracking-widest">{m.label}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="lg:col-span-2 space-y-5">
-                        {/* Dividend Distribution */}
-                        <div className="glass-morphism rounded-3xl p-6 border border-emerald-500/20 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl savings-gradient flex items-center justify-center text-xl">💸</div>
-                                <div>
-                                    <div className="font-black text-sm">Dividend Distribution</div>
-                                    <div className="text-[10px] text-foreground/30 font-bold">Pool: {fmt(dividendPreview?.totalIncome ?? 0)}</div>
-                                </div>
+                    {/* Quick Tools */}
+                    <div className="lg:col-span-4 space-y-6">
+                        <div className="bg-white rounded-[3rem] p-8 border border-primary/5 shadow-2xl space-y-6 hover-lift">
+                            <div className="space-y-1">
+                                <h3 className="text-xl font-black tracking-tight">Dividends</h3>
+                                <p className="text-xs text-foreground/30 font-medium">Accumulated interest distribution hub.</p>
+                            </div>
+                            <div className="p-6 rounded-[2rem] bg-secondary/5 border border-secondary/10 text-center">
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary/60 mb-1">Available Pool</div>
+                                <div className="text-3xl font-black tracking-tighter text-secondary">{fmt(dividendPreview?.totalIncome ?? 0)}</div>
                             </div>
                             <button
                                 onClick={() => setShowDividend(true)}
                                 disabled={(dividendPreview?.totalIncome ?? 0) <= 0}
-                                className="w-full py-3 rounded-2xl savings-gradient text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="w-full py-5 rounded-2xl gold-gradient text-white font-black text-xs uppercase tracking-[0.2em] shadow-gold disabled:opacity-10 transition-transform active:scale-95"
                             >
-                                {(dividendPreview?.totalIncome ?? 0) > 0 ? 'Distribute to Members →' : 'No Income to Distribute'}
+                                Execute Distribution →
                             </button>
                         </div>
 
-                        {/* Pending Loans */}
-                        <div className="glass-morphism rounded-3xl p-6 border border-border/50 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl premium-gradient flex items-center justify-center text-xl">📋</div>
-                                <div>
-                                    <div className="font-black text-sm">Loan Approvals</div>
-                                    <div className="text-[10px] text-foreground/30 font-bold">{pendingLoans.length} pending request{pendingLoans.length !== 1 ? 's' : ''}</div>
-                                </div>
-                            </div>
-                            <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
+                        {/* Recent Requests Small List */}
+                        <div className="bg-foreground/5 rounded-[3rem] p-8 border border-white/5 space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20">Awaiting Signature</h4>
+                            <div className="space-y-3">
                                 {pendingLoans.length === 0 ? (
-                                    <p className="text-[11px] text-foreground/25 italic font-bold text-center py-4">Queue is clear ✓</p>
-                                ) : pendingLoans.map(loan => (
-                                    <div key={loan.id} className="p-3 rounded-2xl bg-foreground/5 border border-foreground/5 space-y-2">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="text-xs font-black">{loan.user.firstName} {loan.user.lastName}</div>
-                                                <div className="text-[10px] text-foreground/40">{fmt(Number(loan.principalAmount))}</div>
-                                            </div>
+                                    <p className="text-xs text-foreground/20 italic font-bold py-8 text-center">Queue Neutralized.</p>
+                                ) : pendingLoans.slice(0, 3).map(loan => (
+                                    <div key={loan.id} className="p-4 rounded-2xl bg-white/50 border border-white/50 flex justify-between items-center">
+                                        <div>
+                                            <div className="text-xs font-black">{loan.user.firstName}</div>
+                                            <div className="text-[10px] text-foreground/30">{fmt(Number(loan.principalAmount))}</div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button disabled={!!actionLoading} onClick={() => approveLoan(loan.id, 'APPROVED')} className="flex-1 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase hover:bg-emerald-500/30 transition-all disabled:opacity-50">Approve</button>
-                                            <button disabled={!!actionLoading} onClick={() => approveLoan(loan.id, 'DISBURSED')} className="flex-1 py-1.5 rounded-xl premium-gradient text-white text-[10px] font-black uppercase hover:opacity-90 transition-all disabled:opacity-50">Disburse</button>
-                                            <button disabled={!!actionLoading} onClick={() => approveLoan(loan.id, 'REJECTED')} className="flex-1 py-1.5 rounded-xl bg-foreground/10 text-foreground/40 text-[10px] font-black uppercase hover:bg-red-500/20 hover:text-red-400 transition-all disabled:opacity-50">Reject</button>
-                                        </div>
+                                        <button onClick={() => approveLoan(loan.id, 'APPROVED')} className="text-[10px] font-black uppercase text-primary hover:underline">Select</button>
                                     </div>
                                 ))}
                             </div>
@@ -204,80 +196,56 @@ export default function TreasurerDashboard() {
                     </div>
                 </div>
 
-                {/* Member Roster */}
-                <div className="glass-morphism rounded-3xl border border-border/50 overflow-hidden shadow-xl">
-                    <div className="px-8 py-5 border-b border-foreground/5 flex justify-between items-center">
-                        <h2 className="text-xl font-black">Member Savings Roster</h2>
-                        <span className="text-[10px] font-black text-foreground/30 uppercase tracking-widest">{roster.length} members enrolled</span>
+                {/* Member Matrix */}
+                <div className="bg-white rounded-[4rem] border border-primary/5 shadow-2xl overflow-hidden hover-lift">
+                    <div className="px-10 py-8 border-b border-foreground/[0.02] flex justify-between items-center">
+                        <h2 className="text-3xl font-black tracking-tighter">Financial Matrix</h2>
+                        <span className="text-[10px] font-black text-foreground/20 uppercase tracking-[0.3em]">{roster.length} Active Records</span>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="text-[10px] font-black uppercase tracking-widest text-foreground/30 border-b border-foreground/5">
-                                    <th className="px-8 py-4 text-left">Member</th>
-                                    <th className="px-8 py-4 text-right">Savings</th>
-                                    <th className="px-8 py-4 text-left">Loan Status</th>
-                                    <th className="px-8 py-4 text-left">Repayment Progress</th>
-                                    <th className="px-8 py-4 text-right">Actions</th>
+                                <tr className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/10 border-b border-foreground/[0.02]">
+                                    <th className="px-10 py-6 text-left">Entity</th>
+                                    <th className="px-10 py-6 text-right">Liquidity</th>
+                                    <th className="px-10 py-6 text-left">Risk Assessment</th>
+                                    <th className="px-10 py-6 text-left">Maturity</th>
+                                    <th className="px-10 py-6 text-right">Archival</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-foreground/5">
-                                {roster.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-16 text-center text-foreground/20 italic font-bold text-sm">No member accounts found</td></tr>
-                                ) : roster.map(m => (
-                                    <tr key={m.userId} className="hover:bg-foreground/3 transition-colors">
-                                        <td className="px-8 py-4">
-                                            <div className="font-bold text-sm">{m.name}</div>
-                                            <div className="text-[10px] text-foreground/30">{m.email}</div>
+                            <tbody className="divide-y divide-foreground/[0.02]">
+                                {roster.map(m => (
+                                    <tr key={m.userId} className="hover:bg-foreground/[0.01] transition-colors group">
+                                        <td className="px-10 py-8">
+                                            <div className="font-black text-lg tracking-tight">{m.name}</div>
+                                            <div className="text-[10px] text-foreground/20 font-bold">{m.email}</div>
                                         </td>
-                                        <td className="px-8 py-4 text-right">
-                                            <div className="font-black text-sm text-emerald-400">{fmt(m.savings)}</div>
+                                        <td className="px-10 py-8 text-right font-black text-secondary tracking-tighter text-lg">
+                                            {fmt(m.savings)}
                                         </td>
-                                        <td className="px-8 py-4">
+                                        <td className="px-10 py-8">
                                             {m.activeLoan ? (
-                                                <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${m.activeLoan.status === 'DISBURSED' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                    m.activeLoan.status === 'REQUESTED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                        'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                                                    }`}>{m.activeLoan.status}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-2 h-2 rounded-full bg-secondary anim-pulse"></span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-secondary">{m.activeLoan.status}</span>
+                                                </div>
                                             ) : (
-                                                <span className="text-[9px] text-foreground/20 font-black uppercase">No Active Loan</span>
+                                                <span className="text-[10px] text-foreground/10 font-black uppercase">Neutral</span>
                                             )}
                                         </td>
-                                        <td className="px-8 py-4">
+                                        <td className="px-10 py-8">
                                             {m.activeLoan ? (
-                                                <div className="space-y-1 min-w-[160px]">
-                                                    <div className="flex justify-between text-[9px] font-black text-foreground/40 uppercase tracking-widest">
-                                                        <span>{fmt(m.activeLoan.repaid)} paid</span>
-                                                        <span>{m.activeLoan.progress.toFixed(0)}%</span>
+                                                <div className="w-48 space-y-2">
+                                                    <div className="h-1 bg-foreground/5 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-primary/40 rounded-full transition-all duration-1000" style={{ width: `${m.activeLoan.progress}%` }}></div>
                                                     </div>
-                                                    <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
-                                                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${m.activeLoan.progress}%`, background: m.activeLoan.progress >= 80 ? '#34d399' : m.activeLoan.progress >= 40 ? '#a78bfa' : '#f59e0b' }}></div>
-                                                    </div>
+                                                    <div className="text-[9px] font-black text-foreground/20 uppercase tracking-widest">{m.activeLoan.progress.toFixed(0)}% Repaid</div>
                                                 </div>
-                                            ) : <span className="text-[9px] text-foreground/20 italic">—</span>}
+                                            ) : <span className="text-xl opacity-10">—</span>}
                                         </td>
-                                        <td className="px-8 py-4 text-right">
-                                            <button
-                                                onClick={async () => {
-                                                    const token = localStorage.getItem('access_token');
-                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/reports/statement?userId=${m.userId}`, {
-                                                        headers: { 'Authorization': `Bearer ${token}` }
-                                                    });
-                                                    if (res.ok) {
-                                                        const blob = await res.blob();
-                                                        const url = window.URL.createObjectURL(blob);
-                                                        const a = document.createElement('a');
-                                                        a.href = url;
-                                                        a.download = `statement_${m.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-                                                        document.body.appendChild(a);
-                                                        a.click();
-                                                        a.remove();
-                                                    }
-                                                }}
-                                                className="p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 text-xs font-black transition-all"
-                                                title="Download Statement"
-                                            >
-                                                📄
+                                        <td className="px-10 py-8 text-right">
+                                            <button className="text-foreground/10 hover:text-black transition-colors opacity-0 group-hover:opacity-100">
+                                                <span className="text-2xl">📥</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -288,27 +256,28 @@ export default function TreasurerDashboard() {
                 </div>
             </main>
 
-            {/* Dividend Modal */}
-            {showDividend && dividendPreview && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="glass-morphism border border-emerald-500/30 rounded-3xl p-8 max-w-lg w-full space-y-6 shadow-2xl">
-                        <div className="space-y-2">
-                            <h3 className="text-2xl font-black">Confirm Dividend Distribution 💸</h3>
-                            <p className="text-foreground/40 text-sm">Proportional share of <strong className="text-emerald-400">{fmt(dividendPreview.totalIncome)}</strong> will be credited to {dividendPreview.memberBreakdown?.length} members.</p>
+            {/* Dividend Modal Upgrade */}
+            {showDividend && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-xl flex items-center justify-center z-[200] p-6 animate-reveal">
+                    <div className="bg-white rounded-[4rem] p-12 max-w-xl w-full border border-primary/5 shadow-2xl space-y-10">
+                        <div className="text-center space-y-3">
+                            <div className="text-5xl mb-4">🏛️</div>
+                            <h3 className="text-3xl font-black tracking-tighter uppercase">Authorize Yield</h3>
+                            <p className="text-sm text-foreground/40 font-medium leading-relaxed px-8">Confirming the distribution of <span className="text-secondary font-black">{fmt(dividendPreview?.totalIncome ?? 0)}</span> across the family network.</p>
                         </div>
-                        <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                            {dividendPreview.memberBreakdown?.map((m: any) => (
-                                <div key={m.userId} className="flex justify-between items-center p-3 rounded-2xl bg-foreground/5">
-                                    <span className="text-sm font-bold">{m.name}</span>
-                                    <span className="text-emerald-400 font-black text-sm">+{fmt(Number(m.projectedDividend.toFixed(2)))}</span>
+                        <div className="space-y-3 max-h-48 overflow-y-auto px-4">
+                            {dividendPreview?.memberBreakdown?.map((m: any) => (
+                                <div key={m.userId} className="flex justify-between items-center py-4 border-b border-foreground/5">
+                                    <span className="text-sm font-black">{m.name}</span>
+                                    <span className="text-secondary font-black text-sm">+{fmt(Number(m.projectedDividend.toFixed(2)))}</span>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex gap-3">
-                            <button disabled={actionLoading === 'dividend'} onClick={distributeDividends} className="flex-1 py-4 rounded-2xl savings-gradient text-white font-black uppercase tracking-widest text-sm hover:scale-[1.02] transition-all disabled:opacity-50">
-                                {actionLoading === 'dividend' ? 'Processing…' : '✓ Execute Distribution'}
+                        <div className="flex gap-4">
+                            <button onClick={distributeDividends} className="flex-[2] py-6 rounded-3xl gold-gradient text-white font-black uppercase tracking-widest text-xs hover:scale-[1.02] shadow-gold transition-all">
+                                {actionLoading === 'dividend' ? 'EXECUTING...' : 'Confirm Distribution'}
                             </button>
-                            <button onClick={() => setShowDividend(false)} className="px-6 py-4 rounded-2xl bg-foreground/5 font-black uppercase tracking-widest text-sm hover:bg-foreground/10 transition-all">Cancel</button>
+                            <button onClick={() => setShowDividend(false)} className="flex-1 py-6 rounded-3xl bg-foreground/5 font-black uppercase tracking-widest text-[10px] hover:bg-foreground/10 transition-colors">Abort</button>
                         </div>
                     </div>
                 </div>

@@ -32,24 +32,50 @@ export default function ChatBox() {
         setHasToken(!!token);
 
         if (token) {
+            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+            const socketUrl = apiUrl.replace('/api', '');
+
             // Initialize socket
-            const socket = io(process.env.NEXT_PUBLIC_API_URL!.replace('/api', ''), {
+            const socket = io(socketUrl, {
                 auth: { token },
-                transports: ['websocket']
+                transports: ['websocket'],
+                reconnection: true,
             });
 
+            socket.on('connect', () => console.log('Chat connected'));
+            socket.on('connect_error', (err) => console.error('Chat connection error:', err));
+
             socket.on('receive_message', (msg: Message) => {
-                setMessages(prev => [...prev, msg]);
+                setMessages(prev => {
+                    // Check if we already have this message (deduplication)
+                    if (prev.some(m => m.id === msg.id)) return prev;
+
+                    // If we have an optimistic message with the same content and user, replace it
+                    // or just append if it's from someone else
+                    const isDuplicate = prev.some(m =>
+                        m.id.startsWith('temp-') &&
+                        m.content === msg.content &&
+                        m.user.id === msg.user.id
+                    );
+
+                    if (isDuplicate) {
+                        return prev.map(m => (m.id.startsWith('temp-') && m.content === msg.content) ? msg : m);
+                    }
+
+                    return [...prev, msg];
+                });
             });
 
             socketRef.current = socket;
 
             // Initial fetch of recent messages
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/recent`, {
+            fetch(`${apiUrl}/chat/recent`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(r => r.json())
-                .then(data => setMessages(data))
+                .then(data => {
+                    if (Array.isArray(data)) setMessages(data);
+                })
                 .catch(err => console.error('Initial chat load failed', err));
 
             return () => {
@@ -59,18 +85,34 @@ export default function ChatBox() {
     }, []);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        if (scrollRef.current && isOpen) {
+            const scrollContainer = scrollRef.current;
+            scrollContainer.scrollTo({
+                top: scrollContainer.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     }, [messages, isOpen]);
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!content.trim() || !socketRef.current) return;
+        if (!content.trim() || !socketRef.current || !currentUser) return;
 
         const msgContent = content.trim();
+        const tempId = `temp-${Date.now()}`;
+
+        // Optimistic Update
+        const optimisticMsg: Message = {
+            id: tempId,
+            content: msgContent,
+            createdAt: new Date().toISOString(),
+            user: currentUser
+        };
+
+        setMessages(prev => [...prev, optimisticMsg]);
         setContent('');
 
+        // Send to server
         socketRef.current.emit('send_message', { content: msgContent });
     };
 
@@ -82,7 +124,7 @@ export default function ChatBox() {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="w-16 h-16 rounded-full premium-gradient shadow-2xl flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition-all text-white border-4 border-white/20"
+                    className="w-16 h-16 rounded-full premium-gradient shadow-2xl flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition-all text-white border-4 border-white/20 animate-bounce-slow"
                 >
                     💬
                 </button>
@@ -90,19 +132,22 @@ export default function ChatBox() {
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="w-[350px] h-[500px] bg-card/60 backdrop-blur-3xl border border-white/20 rounded-[32px] shadow-3xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+                <div className="w-[380px] h-[550px] bg-white/95 backdrop-blur-2xl border border-primary/10 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden animate-reveal">
                     {/* Header */}
-                    <div className="px-6 py-5 premium-gradient text-white flex justify-between items-center shrink-0">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xl">🤝</span>
+                    <div className="px-8 py-6 premium-gradient text-white flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl">🏠</div>
                             <div>
-                                <h3 className="text-sm font-black tracking-tight">Family Lounge</h3>
-                                <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">Global Chat</p>
+                                <h3 className="text-base font-black tracking-tight">Family Lounge</h3>
+                                <div className="flex items-center gap-1.5 pt-0.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 anim-pulse"></span>
+                                    <p className="text-[9px] font-black opacity-70 uppercase tracking-widest leading-none">Live Connection</p>
+                                </div>
                             </div>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-all font-bold"
+                            className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all font-bold"
                         >
                             ✕
                         </button>
@@ -110,43 +155,42 @@ export default function ChatBox() {
 
                     {/* Messages Area */}
                     <div
-                        className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth"
+                        className="flex-1 overflow-y-auto px-6 py-8 space-y-6 scrollbar-hide"
                         ref={scrollRef}
                     >
                         {messages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-30">
-                                <span className="text-4xl">👋</span>
-                                <p className="text-xs font-bold uppercase tracking-widest">Start the family conversation!</p>
+                            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-20">
+                                <span className="text-6xl">✨</span>
+                                <p className="text-xs font-black uppercase tracking-[0.2em]">The room is quiet...</p>
                             </div>
-                        ) : messages.map((msg) => {
+                        ) : messages.map((msg, i) => {
                             const isMe = msg.user.id === currentUser?.id;
-                            const isOfficial = msg.user.roles.some(r => ['secretary', 'treasurer', 'super_admin'].includes(r.role.name));
+                            const isTemp = msg.id.startsWith('temp-');
+
+                            // Grouping logic (simplified)
+                            const prevMsg = messages[i - 1];
+                            const isSameUser = prevMsg?.user.id === msg.user.id;
 
                             return (
                                 <div
                                     key={msg.id}
-                                    className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                                    className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} ${isSameUser ? '-mt-4' : ''} animate-reveal`}
                                 >
-                                    <div className="flex items-center gap-1.5 mb-1">
-                                        <span className="text-[10px] font-black text-foreground/40 uppercase tracking-tight">
-                                            {isMe ? 'Me' : `${msg.user.firstName} ${msg.user.lastName}`}
+                                    {!isSameUser && (
+                                        <span className="text-[10px] font-black text-foreground/20 uppercase tracking-widest mb-1.5 px-1">
+                                            {isMe ? 'You' : `${msg.user.firstName} ${msg.user.lastName}`}
                                         </span>
-                                        {isOfficial && !isMe && (
-                                            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase">Official</span>
-                                        )}
-                                    </div>
+                                    )}
                                     <div
-                                        className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed ${isMe
-                                            ? 'bg-primary text-white rounded-tr-none'
-                                            : isOfficial
-                                                ? 'bg-primary/10 text-foreground border border-primary/20 rounded-tl-none font-bold'
-                                                : 'bg-foreground/5 text-foreground rounded-tl-none'
-                                            }`}
+                                        className={`max-w-[80%] px-5 py-3.5 rounded-[24px] text-[13px] font-medium leading-relaxed shadow-sm transition-all ${isMe
+                                            ? 'bg-primary text-white rounded-tr-none shadow-primary/10'
+                                            : 'bg-foreground/5 text-foreground rounded-tl-none'
+                                            } ${isTemp ? 'opacity-50 scale-95 origin-right translate-y-1' : 'opacity-100 scale-100'}`}
                                     >
                                         {msg.content}
                                     </div>
-                                    <span className="text-[9px] text-foreground/20 mt-1">
-                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <span className="text-[8px] font-black text-foreground/10 mt-1 uppercase tracking-widest">
+                                        {isTemp ? 'Sending...' : new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
                             );
@@ -156,22 +200,22 @@ export default function ChatBox() {
                     {/* Input Area */}
                     <form
                         onSubmit={handleSend}
-                        className="p-5 border-t border-foreground/5 shrink-0"
+                        className="p-6 border-t border-foreground/[0.03] bg-white shrink-0"
                     >
-                        <div className="flex gap-2">
+                        <div className="flex gap-3 bg-foreground/5 p-2 rounded-[24px] border border-foreground/[0.03] focus-within:border-primary/20 focus-within:bg-white transition-all shadow-inner">
                             <input
                                 type="text"
-                                placeholder="Share something with the family..."
+                                placeholder="Whisper something..."
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:border-primary/50 transition-all"
+                                className="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none placeholder:text-foreground/20"
                             />
                             <button
                                 type="submit"
                                 disabled={!content.trim() || isLoading}
-                                className="w-10 h-10 rounded-xl premium-gradient text-white flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
+                                className="w-10 h-10 rounded-2xl premium-gradient text-white flex items-center justify-center shadow-xl shadow-primary/10 hover:scale-105 active:scale-95 transition-all disabled:grayscale disabled:opacity-20"
                             >
-                                <span className="rotate-45 -mt-0.5 -ml-0.5">✈️</span>
+                                <span className="rotate-45 -mt-0.5 -ml-0.5 text-lg">✈️</span>
                             </button>
                         </div>
                     </form>

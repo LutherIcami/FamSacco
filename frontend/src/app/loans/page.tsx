@@ -52,80 +52,118 @@ export default function LoansPage() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col font-inter">
-            <nav className="border-b border-border/50 px-8 py-4 flex justify-between items-center bg-card/30 backdrop-blur-xl sticky top-0 z-50">
-                <Link href="/dashboard" className="text-2xl font-black tracking-tight">
-                    Fam<span className="text-primary italic">Sacco</span>
-                </Link>
-                <div className="flex gap-6 text-sm font-semibold text-foreground/60">
-                    <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
-                    <Link href="/finance" className="hover:text-primary transition-colors">Ledger</Link>
-                    <Link href="/loans" className="text-primary transition-colors">Loans</Link>
-                </div>
-            </nav>
-
-            <main className="p-8 max-w-4xl mx-auto w-full space-y-12 animate-in fade-in duration-700">
-                <section className="text-center space-y-4">
-                    <h1 className="text-5xl font-black tracking-tight">Need a boost? 🚀</h1>
-                    <p className="text-foreground/40 text-lg font-medium max-w-xl mx-auto">
-                        Apply for a family-backed loan at our fixed 1.5% community interest rate.
-                    </p>
-                </section>
-
-                <div className="glass-morphism rounded-[40px] p-12 border border-white/10 shadow-3xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 text-6xl opacity-10">🏦</div>
-
-                    <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                        <div className="space-y-4 text-center">
-                            <label className="text-sm font-black uppercase tracking-widest text-foreground/30">Application Amount</label>
-                            <div className="relative max-w-sm mx-auto">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-black text-primary opacity-30">KES</span>
-                                <input
-                                    required
-                                    type="number"
-                                    placeholder="0,000"
-                                    className="w-full pl-24 pr-8 py-8 text-5xl font-black bg-white/5 rounded-3xl border border-white/5 focus:border-primary/50 outline-none transition-all placeholder:opacity-10 text-center"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                />
-                            </div>
+            {/* Floating Navigation */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-5xl px-6">
+                <nav className="glass-morphism rounded-full px-8 py-4 flex justify-between items-center bg-white/60 shadow-2xl border border-primary/5">
+                    <div className="flex items-center gap-12">
+                        <Link href="/dashboard" className="text-2xl font-black tracking-tight hover:scale-105 transition-transform">
+                            Fam<span className="text-primary italic">Sacco</span>
+                        </Link>
+                        <div className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/40">
+                            <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
+                            <Link href="/finance" className="hover:text-primary transition-colors">Ledger</Link>
+                            <Link href="/loans" className="text-primary">Loans</Link>
+                            <Link href="/social" className="hover:text-primary transition-colors">Social</Link>
                         </div>
+                    </div>
+                </nav>
+            </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Interest Rate</div>
-                                <div className="text-2xl font-black">1.5% <span className="text-xs text-primary/60 font-medium">FIXED</span></div>
-                            </div>
-                            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Total to Repay</div>
-                                <div className="text-2xl font-black text-primary">
-                                    KES {amount ? (Number(amount) * 1.015).toLocaleString() : '0.00'}
-                                </div>
-                            </div>
-                        </div>
+            <div className="h-24"></div>
 
-                        {success ? (
-                            <div className="p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-center space-y-2 animate-bounce">
-                                <div className="font-bold text-lg">Application Submitted!</div>
-                                <p className="text-sm opacity-80">The family treasurer has been notified for review.</p>
-                                <button onClick={() => setSuccess(false)} className="text-xs font-black uppercase tracking-widest mt-4 hover:underline">Apply for another?</button>
-                            </div>
-                        ) : (
-                            <button
-                                disabled={loading || !amount}
-                                className="w-full py-6 rounded-3xl accent-gradient text-white font-black text-xl shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20"
-                            >
-                                {loading ? 'Processing...' : 'Submit Loan Request'}
-                            </button>
-                        )}
-                    </form>
-                </div>
-
-                <section className="bg-white/5 rounded-[40px] p-12 border border-white/10 space-y-6">
-                    <h3 className="text-2xl font-black tracking-tight">Your Loan History</h3>
-                    <div className="text-center py-12 opacity-30 italic font-medium">
-                        No active or past loans found for this account.
+            <main className="p-8 max-w-5xl mx-auto w-full space-y-12 animate-reveal">
+                <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Growth Credit</h1>
+                        <p className="text-lg text-foreground/40 font-medium">Empowering your family endeavors.</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20 mb-1">Current Interest Rate</p>
+                        <div className="text-3xl font-black text-secondary tracking-tighter">1.5% <span className="text-sm opacity-30 font-medium tracking-tight italic">fixed AR</span></div>
                     </div>
                 </section>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Left Panel: Limit Visualization */}
+                    <div className="md:col-span-1 space-y-6">
+                        <div className="glass-morphism rounded-[3rem] p-10 space-y-8 hover-lift">
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-black tracking-tight text-foreground/60">Your Liquidity</h3>
+                                <p className="text-xs text-foreground/30 font-bold uppercase tracking-widest">Available Credit</p>
+                            </div>
+
+                            <div className="relative aspect-square flex items-center justify-center p-4">
+                                <div className="absolute inset-0 border-[16px] border-primary/5 rounded-full"></div>
+                                <div className="absolute inset-0 border-[16px] border-secondary border-l-transparent border-b-transparent rounded-full rotate-45"></div>
+                                <div className="text-center">
+                                    <div className="text-xs font-black uppercase tracking-widest text-foreground/20">Up to</div>
+                                    <div className="text-3xl font-black tracking-tighter">3x</div>
+                                    <div className="text-[10px] font-bold text-foreground/40">OF SAVINGS</div>
+                                </div>
+                            </div>
+
+                            <p className="text-[10px] text-center text-foreground/40 leading-relaxed font-semibold">
+                                Loan limits are proportionally calculated based on your total savings and family verification status.
+                            </p>
+                        </div>
+
+                        <div className="p-10 rounded-[3rem] bg-foreground/5 border border-foreground/5 space-y-4">
+                            <h4 className="text-sm font-black uppercase tracking-widest">Recent Activity</h4>
+                            <p className="text-xs text-foreground/30 italic">No loan history under this account.</p>
+                        </div>
+                    </div>
+
+                    {/* Right Panel: Application Form */}
+                    <div className="md:col-span-2">
+                        <div className="bg-white rounded-[4rem] p-12 border border-primary/5 shadow-2xl hover-lift">
+                            <form onSubmit={handleSubmit} className="space-y-10">
+                                <div className="space-y-4 text-center">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20">Application Amount</label>
+                                    <div className="relative max-w-sm mx-auto group">
+                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 text-5xl font-black text-foreground/10 transition-colors group-focus-within:text-primary/20">KES</span>
+                                        <input
+                                            required
+                                            type="number"
+                                            placeholder="0,000"
+                                            className="w-full pl-32 pr-4 py-8 text-6xl font-black bg-transparent border-b-4 border-foreground/5 focus:border-primary/50 outline-none transition-all placeholder:text-foreground/5 text-right tracking-tighter"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-8 text-center">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Lending Term</p>
+                                        <p className="text-xl font-black">Flexible</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Repayable Total</p>
+                                        <p className="text-2xl font-black text-secondary tracking-tighter">
+                                            KES {amount ? (Number(amount) * 1.015).toLocaleString() : '0.00'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {success ? (
+                                    <div className="p-8 rounded-[3rem] bg-secondary/10 border border-secondary/20 text-secondary text-center space-y-3 animate-reveal">
+                                        <div className="text-4xl">🚀</div>
+                                        <div className="font-black text-xl tracking-tight">Request Broadcasted</div>
+                                        <p className="text-sm opacity-60 font-medium">The family pool has been notified for verification.</p>
+                                        <button onClick={() => setSuccess(false)} className="text-[10px] font-black uppercase tracking-[0.2em] pt-4 hover:underline">Apply Again</button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        disabled={loading || !amount}
+                                        className="w-full py-7 rounded-[2rem] premium-gradient text-white font-black text-sm uppercase tracking-[0.3em] shadow-gold hover:scale-[1.01] transition-transform disabled:opacity-20"
+                                    >
+                                        {loading ? 'Processing...' : 'Apply for Wealth'}
+                                    </button>
+                                )}
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     );

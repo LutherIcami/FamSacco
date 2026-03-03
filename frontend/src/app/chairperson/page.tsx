@@ -94,9 +94,9 @@ export default function ChairpersonDashboard() {
                     </div>
                     <div className="glass-morphism border border-border/50 rounded-2xl px-6 py-4 text-center">
                         <div className="text-[10px] font-black text-foreground/30 uppercase tracking-widest mb-1">Sacco Health Score</div>
-                        <div className={`text-3xl font-black ${healthScore >= 60 ? 'text-emerald-400' : healthScore >= 30 ? 'text-amber-400' : 'text-red-400'}`}>{healthScore}<span className="text-sm">/100</span></div>
+                        <div className={`text-3xl font-black ${healthScore >= 60 ? 'text-secondary' : healthScore >= 30 ? 'text-accent' : 'text-red-400'}`}>{healthScore}<span className="text-sm">/100</span></div>
                         <div className="w-24 h-1.5 bg-foreground/10 rounded-full mt-2 overflow-hidden mx-auto">
-                            <div className={`h-full rounded-full transition-all ${healthScore >= 60 ? 'bg-emerald-400' : healthScore >= 30 ? 'bg-amber-400' : 'bg-red-400'}`} style={{ width: `${healthScore}%` }}></div>
+                            <div className={`h-full rounded-full transition-all ${healthScore >= 60 ? 'bg-secondary' : healthScore >= 30 ? 'bg-accent' : 'bg-red-400'}`} style={{ width: `${healthScore}%` }}></div>
                         </div>
                     </div>
                 </div>
@@ -105,9 +105,9 @@ export default function ChairpersonDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                     {[
                         { label: 'Sacco Assets', value: fmtMillions(stats?.liquidity ?? 0), icon: '🏔', gradient: 'premium-gradient text-white', shadow: 'shadow-primary/20' },
-                        { label: 'Loan Portfolio', value: fmtMillions(stats?.portfolioAtRisk ?? 0), icon: '📊', gradient: 'glass-morphism border border-purple-500/20', color: 'text-purple-400' },
-                        { label: 'Interest Earned', value: fmtMillions(stats?.totalIncome ?? 0), icon: '📈', gradient: 'glass-morphism border border-emerald-500/20', color: 'text-emerald-400' },
-                        { label: 'Active Members', value: String(activeMembers), icon: '👥', gradient: 'glass-morphism border border-sky-500/20', color: 'text-sky-400' },
+                        { label: 'Loan Portfolio', value: fmtMillions(stats?.portfolioAtRisk ?? 0), icon: '📊', gradient: 'glass-morphism border border-secondary/20', color: 'text-secondary' },
+                        { label: 'Interest Earned', value: fmtMillions(stats?.totalIncome ?? 0), icon: '📈', gradient: 'glass-morphism border border-secondary/20', color: 'text-secondary' },
+                        { label: 'Active Members', value: String(activeMembers), icon: '👥', gradient: 'glass-morphism border border-primary/20', color: 'text-primary' },
                     ].map(card => (
                         <div key={card.label} className={`rounded-3xl p-6 space-y-3 shadow-xl ${card.gradient} ${card.shadow ?? ''}`}>
                             <div className="flex justify-between items-start">
@@ -132,8 +132,8 @@ export default function ChairpersonDashboard() {
                                 </div>
                                 <div className="flex gap-3 text-[9px] font-black uppercase tracking-widest">
                                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>Savings</span>
-                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span>Loans</span>
-                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>Interest</span>
+                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-secondary inline-block"></span>Loans</span>
+                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-accent inline-block"></span>Interest</span>
                                 </div>
                             </div>
                             <div className="flex items-end gap-3 h-36">
@@ -142,7 +142,7 @@ export default function ChairpersonDashboard() {
                                 ) : cashflow.map(m => (
                                     <div key={m.label} className="flex-1 flex flex-col items-center gap-1.5 group">
                                         <div className="w-full flex items-end gap-0.5" style={{ height: '110px' }}>
-                                            {[{ v: m.savings, cls: 'bg-primary' }, { v: m.loans, cls: 'bg-purple-400' }, { v: m.income, cls: 'bg-emerald-400' }].map((b, i) => (
+                                            {[{ v: m.savings, cls: 'bg-primary' }, { v: m.loans, cls: 'bg-secondary' }, { v: m.income, cls: 'bg-accent' }].map((b, i) => (
                                                 <div key={i} title={fmt(b.v)} className={`flex-1 ${b.cls} rounded-t-sm opacity-70 group-hover:opacity-100 transition-all`} style={{ height: `${(b.v / maxCf) * 100}%`, minHeight: b.v > 0 ? 3 : 0 }}></div>
                                             ))}
                                         </div>
@@ -153,7 +153,7 @@ export default function ChairpersonDashboard() {
                         </div>
 
                         {/* Governance Queue Alert */}
-                        <div className={`rounded-3xl p-6 border flex items-center gap-5 ${(stats?.awaitingGovernance ?? 0) > 0 ? 'bg-amber-500/5 border-amber-500/20' : 'glass-morphism border-border/50'}`}>
+                        <div className={`rounded-3xl p-6 border flex items-center gap-5 ${(stats?.awaitingGovernance ?? 0) > 0 ? 'bg-accent/5 border-secondary/20' : 'glass-morphism border-border/50'}`}>
                             <div className="text-4xl">{(stats?.awaitingGovernance ?? 0) > 0 ? '⚠️' : '✅'}</div>
                             <div className="flex-1">
                                 <div className="font-black text-lg">{(stats?.awaitingGovernance ?? 0) > 0 ? `${stats!.awaitingGovernance} Loan${stats!.awaitingGovernance > 1 ? 's' : ''} Awaiting Board Approval` : 'Governance Queue is Clear'}</div>
@@ -184,7 +184,7 @@ export default function ChairpersonDashboard() {
                                                 <div className="h-full rounded-full transition-all duration-700 premium-gradient" style={{ width: `${pct}%` }}></div>
                                             </div>
                                             <div className="text-right w-24 flex-shrink-0">
-                                                <div className="text-xs font-black text-emerald-400">{fmt(m.savings)}</div>
+                                                <div className="text-xs font-black text-secondary">{fmt(m.savings)}</div>
                                                 <div className="text-[9px] text-foreground/25">{pct.toFixed(1)}%</div>
                                             </div>
                                         </div>

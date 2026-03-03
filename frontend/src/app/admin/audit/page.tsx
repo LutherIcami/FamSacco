@@ -106,9 +106,9 @@ export default function AuditLogsPage() {
                                             <div className="text-[10px] text-foreground/30 font-black uppercase tracking-widest">{log.user.email}</div>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${log.action.includes('DEPOSIT') ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                                    log.action.includes('LOAN') ? 'bg-primary/10 text-primary border-primary/20' :
-                                                        'bg-foreground/10 text-foreground/50 border-foreground/10'
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${log.action.includes('DEPOSIT') ? 'bg-secondary/10 text-secondary border-secondary/20' :
+                                                log.action.includes('LOAN') ? 'bg-primary/10 text-primary border-primary/20' :
+                                                    'bg-foreground/10 text-foreground/50 border-foreground/10'
                                                 }`}>
                                                 {log.action.replace(/_/g, ' ')}
                                             </span>

@@ -10,8 +10,7 @@ export class ChatController {
 
     @Get('recent')
     async getRecent() {
-        const messages = await this.chatService.getRecentMessages();
-        return messages.reverse(); // Show in chronological order
+        return this.chatService.getRecentMessages();
     }
 
     @Post('send')

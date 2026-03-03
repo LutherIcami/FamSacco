@@ -94,7 +94,7 @@ export default function SecretaryDashboard() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full">Secretary</span>
+                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 rounded-full">Secretary</span>
                     <span className="text-sm font-bold">{user.firstName} {user.lastName}</span>
                 </div>
             </nav>
@@ -149,10 +149,10 @@ export default function SecretaryDashboard() {
                 {/* Membership Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                     {[
-                        { label: 'Active Members', value: activeMembers, icon: '✅', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-                        { label: 'Pending Approval', value: pendingMembers, icon: '⏳', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                        { label: 'Members w/ Loans', value: membersWithLoans, icon: '🏦', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-                        { label: 'Total Deposits', value: fmt(totalSavings), icon: '💰', color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
+                        { label: 'Active Members', value: activeMembers, icon: '✅', color: 'text-secondary', bg: 'bg-secondary/5 border-secondary/10' },
+                        { label: 'Pending Approval', value: pendingMembers, icon: '⏳', color: 'text-accent', bg: 'bg-accent/5 border-accent/10' },
+                        { label: 'Members w/ Loans', value: membersWithLoans, icon: '🏦', color: 'text-primary', bg: 'bg-primary/5 border-primary/10' },
+                        { label: 'Total Deposits', value: fmt(totalSavings), icon: '💰', color: 'text-primary', bg: 'bg-primary/5 border-primary/10' },
                     ].map(card => (
                         <div key={card.label} className={`glass-morphism rounded-3xl p-6 border ${card.bg} space-y-3`}>
                             <div className="flex justify-between items-start">
@@ -198,20 +198,20 @@ export default function SecretaryDashboard() {
                                                 <div className="text-[10px] text-foreground/30">{m.email}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${m.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                    m.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                        'bg-red-500/10 text-red-400 border-red-500/20'
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${m.status === 'ACTIVE' ? 'bg-secondary/10 text-secondary border-secondary/20' :
+                                                    m.status === 'PENDING' ? 'bg-accent/10 text-accent border-accent/20' :
+                                                        'bg-red-500/10 text-red-500 border-red-500/20'
                                                     }`}>{m.status}</span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <span className="font-black text-sm text-emerald-400">{fmt(m.savings)}</span>
+                                                <span className="font-black text-sm text-secondary">{fmt(m.savings)}</span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 {m.activeLoan ? (
                                                     <div className="space-y-1">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${m.activeLoan.status === 'DISBURSED' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>{m.activeLoan.status}</span>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${m.activeLoan.status === 'DISBURSED' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-accent/10 text-accent border-accent/20'}`}>{m.activeLoan.status}</span>
                                                         <div className="h-1 bg-foreground/10 rounded-full w-20 overflow-hidden mt-1">
-                                                            <div className="h-full rounded-full bg-purple-400 transition-all" style={{ width: `${m.activeLoan.progress}%` }}></div>
+                                                            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${m.activeLoan.progress}%` }}></div>
                                                         </div>
                                                     </div>
                                                 ) : <span className="text-[9px] text-foreground/20">—</span>}
@@ -258,7 +258,7 @@ export default function SecretaryDashboard() {
                                 <div className="py-16 text-center text-foreground/20 italic font-bold text-sm">No transactions yet</div>
                             ) : transactions.map(tx => (
                                 <div key={tx.id} className="px-6 py-4 flex items-start gap-3 hover:bg-foreground/3 transition-colors">
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${tx.debit > 0 ? 'bg-sky-500/10' : 'bg-emerald-500/10'}`}>
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${tx.debit > 0 ? 'bg-primary/10' : 'bg-secondary/10'}`}>
                                         {tx.debit > 0 ? '↑' : '↓'}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -266,7 +266,7 @@ export default function SecretaryDashboard() {
                                         <div className="text-[9px] text-foreground/30 uppercase tracking-widest">{tx.account?.accountType?.replace('_', ' ')}</div>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                        <div className={`text-xs font-black ${tx.debit > 0 ? 'text-sky-400' : 'text-emerald-400'}`}>
+                                        <div className={`text-xs font-black ${tx.debit > 0 ? 'text-primary' : 'text-secondary'}`}>
                                             {tx.debit > 0 ? '+' : '-'}{fmt(Math.max(tx.debit, tx.credit))}
                                         </div>
                                         <div className="text-[9px] text-foreground/20">{new Date(tx.createdAt).toLocaleDateString()}</div>

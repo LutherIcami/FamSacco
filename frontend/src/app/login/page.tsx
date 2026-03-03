@@ -45,49 +45,46 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-background relative overflow-hidden font-inter">
-            {/* Decorative background elements */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[120px] animate-pulse"></div>
+            {/* Decorative background elements removed */}
 
-            <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="glass-morphism rounded-[2.5rem] p-12 border border-white/10 shadow-3xl">
-                    <div className="flex flex-col items-center mb-10 space-y-4">
-                        <Link href="/" className="text-5xl font-black tracking-tighter">
-                            Fam<span className="text-primary italic">Sacco</span>
-                        </Link>
-                        <p className="text-foreground/40 font-black uppercase tracking-[0.2em] text-xs">Welcome back to the family</p>
+            <div className="w-full max-w-md z-10 space-y-8">
+                <div className="text-center animate-reveal">
+                    <Link href="/" className="text-6xl font-black tracking-tighter hover:scale-105 transition-transform inline-block">
+                        Fam<span className="text-primary italic">Sacco</span>
+                    </Link>
+                </div>
+
+                <div className="bg-white rounded-[3rem] p-12 border border-primary/5 shadow-lg hover-lift animate-reveal [animation-delay:200ms]">
+                    <div className="mb-10 text-center">
+                        <p className="text-foreground/30 font-black uppercase tracking-[0.3em] text-[10px]">Secure Gateway</p>
+                        <h2 className="text-3xl font-black tracking-tighter mt-2">Welcome Back</h2>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Email Address</label>
-                            <input
-                                required
-                                type="email"
-                                placeholder="john@family.com"
-                                className="w-full px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 focus:border-primary/50 outline-none transition-all font-bold"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center px-1">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Password</label>
-                                <Link href="#" className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">
-                                    Forgot?
-                                </Link>
+                        <div className="space-y-4 animate-reveal [animation-delay:400ms]">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Email</label>
+                                <input
+                                    required
+                                    type="email"
+                                    placeholder="your@family.com"
+                                    className="w-full px-6 py-4 rounded-2xl bg-foreground/[0.02] border border-foreground/10 focus:border-primary/50 focus:bg-white outline-none transition-all font-bold"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                />
                             </div>
-                            <input
-                                required
-                                type="password"
-                                placeholder="••••••••"
-                                className="w-full px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 focus:border-primary/50 outline-none transition-all font-bold"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            />
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Password</label>
+                                <input
+                                    required
+                                    type="password"
+                                    placeholder="••••••••"
+                                    className="w-full px-6 py-4 rounded-2xl bg-foreground/[0.02] border border-foreground/10 focus:border-primary/50 focus:bg-white outline-none transition-all font-bold"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                />
+                            </div>
                         </div>
-
                         {error && (
                             <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-widest leading-loose text-center">
                                 {error}
@@ -97,9 +94,9 @@ export default function Login() {
                         <button
                             disabled={loading}
                             type="submit"
-                            className="w-full py-5 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-2xl shadow-primary/30"
+                            className="w-full py-5 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-[0.2em] shadow-gold animate-reveal [animation-delay:600ms]"
                         >
-                            {loading ? 'Authenticating...' : 'Sign In'}
+                            {loading ? 'Authenticating...' : 'Enter Dashboard'}
                         </button>
                     </form>
 

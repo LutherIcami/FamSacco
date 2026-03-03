@@ -7,7 +7,7 @@ export class ChatService {
     constructor(private prisma: PrismaService) { }
 
     async getRecentMessages(limit = 50) {
-        return this.prisma.chatMessage.findMany({
+        const messages = await this.prisma.chatMessage.findMany({
             take: limit,
             orderBy: { createdAt: 'desc' },
             include: {
@@ -21,6 +21,7 @@ export class ChatService {
                 }
             }
         });
+        return messages.reverse();
     }
 
     async sendMessage(userId: string, dto: SendMessageDto) {

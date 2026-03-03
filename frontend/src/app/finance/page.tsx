@@ -135,36 +135,50 @@ export default function LedgerPage() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col font-inter">
-            <nav className="border-b border-border/50 px-8 py-4 flex justify-between items-center bg-card/30 backdrop-blur-xl sticky top-0 z-50">
-                <div className="flex items-center gap-8">
-                    <Link href="/dashboard" className="text-2xl font-black tracking-tight">
-                        Fam<span className="text-primary italic">Sacco</span>
-                    </Link>
-                    <div className="flex gap-6 text-sm font-semibold text-foreground/60">
-                        <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
-                        {isAdmin && <Link href="/admin/members" className="hover:text-primary transition-colors">Members</Link>}
-                        {isAdmin && <Link href="/admin/loans" className="hover:text-primary transition-colors">Loan Queue</Link>}
-                        <Link href="/finance" className="text-primary transition-colors">Ledger</Link>
+            {/* Floating Navigation */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-5xl px-6">
+                <nav className="glass-morphism rounded-full px-8 py-4 flex justify-between items-center bg-white/60 shadow-2xl border border-primary/5">
+                    <div className="flex items-center gap-12">
+                        <Link href="/dashboard" className="text-2xl font-black tracking-tight hover:scale-105 transition-transform">
+                            Fam<span className="text-primary italic">Sacco</span>
+                        </Link>
+                        <div className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/40">
+                            <Link href="/dashboard" className="hover:text-primary transition-colors">Overview</Link>
+                            <Link href="/finance" className="text-primary">Ledger</Link>
+                            <Link href="/loans" className="hover:text-primary transition-colors">Loans</Link>
+                            <Link href="/social" className="hover:text-primary transition-colors">Social</Link>
+                            {user.roles?.some((r: string) => ['super_admin', 'treasurer'].includes(r)) && (
+                                <Link href="/admin/members" className="hover:text-primary transition-colors">Admin</Link>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </nav>
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
+                            <div className="text-sm font-bold">{user.firstName} {user.lastName}</div>
+                            <div className="text-[9px] text-foreground/30 font-black uppercase tracking-[0.2em]">Internal Ledger</div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
 
-            <main className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-in fade-in duration-700">
-                <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="h-24"></div>
+
+            <main className="p-8 max-w-7xl mx-auto w-full space-y-12 animate-reveal">
+                <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <div className="space-y-2">
-                        <h1 className="text-3xl font-black tracking-tight">
-                            {isAdmin ? 'System Global Ledger' : 'My Financial Ledger'}
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter">
+                            {isAdmin ? 'Central Vault' : 'Financial DNA'}
                         </h1>
-                        <p className="text-foreground/40 font-medium font-inter">Verified double-entry accounting records.</p>
+                        <p className="text-lg text-foreground/40 font-medium">Verified double-entry ledger history.</p>
                     </div>
 
                     <div className="flex gap-4">
                         {isAdmin && (
                             <button
                                 onClick={() => setShowModal(true)}
-                                className="px-6 py-3 rounded-xl accent-gradient text-white font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                                className="px-8 py-4 rounded-2xl gold-gradient text-white font-black text-xs uppercase tracking-widest shadow-gold hover-lift"
                             >
-                                + Record Member Deposit
+                                + Post Entry
                             </button>
                         )}
                         <button
@@ -178,195 +192,88 @@ export default function LedgerPage() {
                                     const url = window.URL.createObjectURL(blob);
                                     const a = document.createElement('a');
                                     a.href = url;
-                                    a.download = `statement_${new Date().toISOString().split('T')[0]}.pdf`;
+                                    a.download = `ledger_v1.pdf`;
                                     document.body.appendChild(a);
                                     a.click();
                                     a.remove();
                                 }
                             }}
-                            className="px-6 py-3 rounded-xl bg-foreground/5 border border-foreground/10 font-black text-sm hover:bg-foreground/10 transition-all flex items-center gap-2"
+                            className="px-8 py-4 rounded-2xl bg-white border border-primary/5 font-black text-xs uppercase tracking-widest hover:bg-foreground/5 transition-all shadow-sm hover-lift"
                         >
-                            <span>📥</span> Download PDF Statement
+                            📊 Export PDF
                         </button>
                     </div>
                 </section>
 
-                {/* Deposit Modal */}
-                {showModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                        <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setShowModal(false)}></div>
-                        <div className="bg-card w-full max-w-lg rounded-[32px] border border-white/10 p-10 shadow-3xl relative z-10 glass-morphism animate-in zoom-in-95 duration-300">
-                            <h2 className="text-2xl font-black tracking-tight mb-6">Record New Deposit</h2>
-                            <form onSubmit={handleDeposit} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">Select Member</label>
-                                    <select
-                                        required
-                                        className="w-full bg-foreground/5 border border-foreground/5 rounded-2xl px-6 py-4 outline-none focus:border-primary/50 transition-all font-bold appearance-none"
-                                        value={formData.userId}
-                                        onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                                    >
-                                        <option value="" className="bg-background">Choose a family member...</option>
-                                        {members.map(m => (
-                                            <option key={m.id} value={m.id} className="bg-background">{m.firstName} {m.lastName}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">Amount (KES)</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            placeholder="0,000"
-                                            className="w-full bg-foreground/5 border border-foreground/5 rounded-2xl px-6 py-4 outline-none focus:border-primary/50 transition-all font-bold"
-                                            value={formData.amount}
-                                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">Month</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            className="w-full bg-foreground/5 border border-foreground/5 rounded-2xl px-6 py-4 outline-none focus:border-primary/50 transition-all font-bold"
-                                            value={formData.month}
-                                            onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                        className="flex-1 py-4 rounded-2xl bg-foreground/5 font-black text-sm uppercase tracking-widest hover:bg-foreground/10 transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-[2] py-4 rounded-2xl accent-gradient text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                    >
-                                        Confirm & Post
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
                 {isAdmin && stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 font-inter">
-                        <div className="p-8 rounded-[2rem] premium-gradient text-white space-y-2 shadow-xl shadow-primary/10 transition-transform hover:scale-[1.02]">
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Total Savings Pool</div>
-                            <div className="text-3xl font-black tracking-tighter">KES {Number(stats.totalSavings || 0).toLocaleString()}</div>
-                        </div>
-                        <div className="p-8 rounded-[2rem] savings-gradient text-white space-y-2 shadow-xl shadow-emerald-500/10 transition-transform hover:scale-[1.02]">
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Total Disbursed</div>
-                            <div className="text-3xl font-black tracking-tighter">KES {Number(stats.totalDisbursed || 0).toLocaleString()}</div>
-                        </div>
-                        <div className="p-8 rounded-[2rem] glass-morphism border border-foreground/10 space-y-2 transition-transform hover:scale-[1.02]">
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">Liquid Reserves</div>
-                            <div className="text-3xl font-black tracking-tighter text-primary">KES {(Number(stats.totalSavings || 0) - Number(stats.totalDisbursed || 0)).toLocaleString()}</div>
-                        </div>
-                        <div className="p-8 rounded-[2rem] accent-gradient text-white space-y-2 shadow-xl shadow-purple-500/10 transition-transform hover:scale-[1.02] cursor-pointer" onClick={() => setShowDividendModal(true)}>
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">Interest Income (Pool)</div>
-                            <div className="text-3xl font-black tracking-tighter">KES {Number(stats.totalIncome || 0).toLocaleString()}</div>
-                            <div className="text-[10px] font-bold text-white/50 underline">Distribute Dividends →</div>
-                        </div>
-                        <div className="p-8 rounded-[2rem] bg-foreground/5 border border-foreground/10 space-y-2 transition-transform hover:scale-[1.02]">
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">Active Requests</div>
-                            <div className="text-3xl font-black tracking-tighter">{stats.pendingLoans}</div>
-                        </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {[
+                            { label: 'Vault Balance', value: Number(stats.totalSavings || 0), icon: '🏦', gradient: 'premium-gradient text-white' },
+                            { label: 'Outward Capital', value: Number(stats.totalDisbursed || 0), icon: '💸', gradient: 'bg-white border border-primary/5 text-primary' },
+                            { label: 'Yield Gained', value: Number(stats.totalIncome || 0), icon: '📈', gradient: 'gold-gradient text-white' },
+                            { label: 'Open Queues', value: stats.pendingLoans || 0, icon: '🛡️', gradient: 'bg-white border border-secondary/20 text-secondary' },
+                        ].map((card, i) => (
+                            <div key={card.label} className={`rounded-[2.5rem] p-8 space-y-3 shadow-sm hover-lift ${card.gradient} animate-reveal`} style={{ animationDelay: `${i * 100}ms` }}>
+                                <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{card.label}</span>
+                                    <span className="text-2xl">{card.icon}</span>
+                                </div>
+                                <div className="text-2xl font-black tracking-tighter">
+                                    {typeof card.value === 'number' && card.label !== 'Open Queues' ? `KES ${card.value.toLocaleString()}` : card.value}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
-                {/* Dividend Modal */}
-                {showDividendModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                        <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setShowDividendModal(false)}></div>
-                        <div className="bg-card w-full max-w-2xl rounded-[32px] border border-white/10 p-10 shadow-3xl relative z-10 glass-morphism animate-in zoom-in-95 duration-300">
-                            <h2 className="text-3xl font-black tracking-tight mb-2">Distribute Dividends</h2>
-                            <p className="text-foreground/40 text-sm mb-8">This will distribute all current interest income (KES {Number(stats.totalIncome || 0).toLocaleString()}) to members proportionally based on their savings.</p>
+                {/* Modern Transaction List */}
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center px-4">
+                        <h3 className="text-2xl font-black tracking-tighter text-foreground/60">Journal Entries</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/20">Live Sync Active</p>
+                    </div>
 
-                            {potentialDividends && (
-                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
-                                    {potentialDividends.memberBreakdown.map((m: any) => (
-                                        <div key={m.userId} className="p-4 rounded-2xl bg-foreground/5 flex justify-between items-center">
-                                            <div>
-                                                <div className="font-bold">{m.name}</div>
-                                                <div className="text-xs text-foreground/40 uppercase tracking-widest font-black">Savings: KES {m.balance.toLocaleString()}</div>
+                    <div className="grid grid-cols-1 gap-4">
+                        {loading ? (
+                            <div className="text-center py-20 animate-pulse font-black text-foreground/10 text-4xl">DECRYPTING LEDGER...</div>
+                        ) : transactions.length === 0 ? (
+                            <div className="glass-morphism rounded-[3rem] p-20 text-center border border-dashed border-primary/10">
+                                <p className="text-foreground/30 font-black tracking-tight">No records found in the vault.</p>
+                            </div>
+                        ) : transactions.map((tx, i) => (
+                            <div key={tx.id} className="glass-morphism rounded-[2.5rem] p-8 hover-lift animate-reveal border-white/40 shadow-sm" style={{ animationDelay: `${i * 50}ms` }}>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-6">
+                                        <div className={`w-14 h-14 rounded-[1.25rem] flex items-center justify-center text-xl shadow-lg ${tx.credit !== "0" ? 'accent-gradient text-white' : 'bg-foreground/5 opacity-40'}`}>
+                                            {tx.credit !== "0" ? '➕' : '➖'}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="font-black text-lg tracking-tight">
+                                                {tx.account.user ? `${tx.account.user.firstName} ${tx.account.user.lastName}` : 'System Treasury'}
                                             </div>
-                                            <div className="text-right">
-                                                <div className="text-primary font-black">+ KES {m.projectedDividend.toLocaleString()}</div>
-                                                <div className="text-[10px] text-foreground/30 font-bold">{(m.share * 100).toFixed(2)}% SHARE</div>
+                                            <div className="flex gap-4 items-center">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">{tx.account.accountType}</span>
+                                                <span className="text-[10px] font-black text-foreground/20 tracking-tighter font-mono">{tx.id.substring(0, 12)}</span>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                    </div>
 
-                            <div className="flex gap-4 pt-8">
-                                <button
-                                    onClick={() => setShowDividendModal(false)}
-                                    className="flex-1 py-4 rounded-2xl bg-foreground/5 font-black text-sm uppercase tracking-widest hover:bg-foreground/10 transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDistributeDividends}
-                                    disabled={loading || (stats.totalIncome || 0) <= 0}
-                                    className="flex-[2] py-4 rounded-2xl premium-gradient text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                                >
-                                    Execute Proportional Distribution
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="glass-morphism rounded-3xl overflow-hidden border border-border/50 shadow-2xl">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-foreground/5 border-b border-foreground/10 text-xs font-black uppercase tracking-widest text-foreground/40">
-                                <th className="px-8 py-5">Date</th>
-                                <th className="px-8 py-5">Account / Entity</th>
-                                <th className="px-8 py-5">Transaction ID</th>
-                                <th className="px-8 py-5 text-right text-red-400">Debit (-)</th>
-                                <th className="px-8 py-5 text-right text-emerald-400">Credit (+)</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-foreground/5">
-                            {loading ? (
-                                <tr><td colSpan={5} className="py-20 text-center animate-pulse font-bold opacity-20">Syncing with Ledger...</td></tr>
-                            ) : transactions.length === 0 ? (
-                                <tr><td colSpan={5} className="py-20 text-center italic font-bold opacity-20 text-sm">No transaction history found.</td></tr>
-                            ) : (
-                                transactions.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-foreground/5 transition-colors">
-                                        <td className="px-8 py-5 text-sm text-foreground/60">
-                                            {new Date(tx.createdAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="font-bold text-sm">
-                                                {tx.account.user ? `${tx.account.user.firstName} ${tx.account.user.lastName}` : 'System Pool'}
+                                    <div className="flex items-center gap-12 text-right">
+                                        <div>
+                                            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-foreground/30 mb-1">Timestamp</div>
+                                            <div className="font-bold text-sm opacity-60">{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                        <div className="min-w-[150px]">
+                                            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-foreground/30 mb-1">Amount</div>
+                                            <div className={`text-2xl font-black tracking-tighter ${tx.credit !== "0" ? 'text-secondary' : 'opacity-40'}`}>
+                                                {tx.credit !== "0" ? `+ KES ${Number(tx.credit).toLocaleString()}` : `- KES ${Number(tx.debit).toLocaleString()}`}
                                             </div>
-                                            <div className="text-[10px] font-black tracking-widest uppercase text-foreground/30">{tx.account.accountType}</div>
-                                        </td>
-                                        <td className="px-8 py-5 text-xs font-mono opacity-40">#{tx.id.substring(0, 8)}</td>
-                                        <td className="px-8 py-5 text-right text-sm font-bold text-red-400/80">
-                                            {tx.debit !== "0" ? `KES ${Number(tx.debit).toLocaleString()}` : '—'}
-                                        </td>
-                                        <td className="px-8 py-5 text-right text-sm font-bold text-emerald-400/80">
-                                            {tx.credit !== "0" ? `KES ${Number(tx.credit).toLocaleString()}` : '—'}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </main>
         </div>
